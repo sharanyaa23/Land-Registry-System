@@ -1,12 +1,12 @@
 import React from 'react';
-import OfficerNavbar from './OfficerNavbar.jsx';
+import SharedNavbar from '../SharedNavbar.jsx';
 import Footer from '../Footer.jsx';
 
 const OfficerDocumentsPage = () => {
   return (
     <div className="font-body text-on-surface min-h-screen" style={{backgroundColor: '#0c0e14', backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(116, 117, 125, 0.05) 1px, transparent 0)', backgroundSize: '40px 40px'}}>
       {/* Officer Navbar */}
-      <OfficerNavbar activePage="documents" />
+      <SharedNavbar role="officer" activePage="documents" />
 
       <main className="pt-12 pb-12 px-8 max-w-[1920px] mx-auto space-y-8">
         {/* Header Section */}

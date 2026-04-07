@@ -1,12 +1,12 @@
 import React from 'react';
-import SellerNavbar from './SellerNavbar.jsx';
+import SharedNavbar from '../SharedNavbar.jsx';
 import Footer from '../Footer.jsx';
 
 const SellerPage = () => {
   return (
     <div className="text-on-surface flex flex-col min-h-screen" style={{backgroundColor: '#0c0e14', backgroundImage: 'radial-gradient(#1d1f27 0.5px, transparent 0.5px)', backgroundSize: '24px 24px', color: '#e5e4ed'}}>
       {/* Seller Navbar */}
-      <SellerNavbar activePage="dashboard" />
+      <SharedNavbar role="seller" activePage="dashboard" />
 
       <main className="relative z-10 p-8 max-w-[1600px] mx-auto space-y-8">
         {/* Page Header */}

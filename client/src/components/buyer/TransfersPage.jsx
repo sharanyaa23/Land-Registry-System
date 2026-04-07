@@ -1,12 +1,13 @@
 import React from 'react';
-import BuyerNavbar from './BuyerNavbar.jsx';
+import { Link } from 'react-router-dom';
+import SharedNavbar from '../SharedNavbar.jsx';
 import Footer from '../Footer.jsx';
 
 const TransfersPage = () => {
   return (
     <div className="font-body text-on-surface min-h-screen" style={{backgroundColor: '#0c0e14', backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(70, 72, 79, 0.05) 1px, transparent 0)', backgroundSize: '40px 40px'}}>
       {/* Buyer Navbar */}
-      <BuyerNavbar activePage="transfers" />
+      <SharedNavbar role="buyer" activePage="transfers" />
       
       <main className="max-w-7xl mx-auto px-8 py-12">
         {/* Header Section */}

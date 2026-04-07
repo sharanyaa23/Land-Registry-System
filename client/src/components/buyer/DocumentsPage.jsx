@@ -1,12 +1,13 @@
 import React from 'react';
-import BuyerNavbar from './BuyerNavbar.jsx';
+import { Link } from 'react-router-dom';
+import SharedNavbar from '../SharedNavbar.jsx';
 import Footer from '../Footer.jsx';
 
 const DocumentsPage = () => {
   return (
     <div className="font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col" style={{backgroundColor: '#0c0e14', backgroundImage: 'radial-gradient(#1d1f27 0.5px, transparent 0.5px)', backgroundSize: '24px 24px', color: '#e5e4ed'}}>
       {/* Buyer Navbar */}
-      <BuyerNavbar activePage="documents" />
+      <SharedNavbar role="buyer" activePage="documents" />
       
       {/* Main Content */}
       <main className="flex-grow w-full max-w-7xl mx-auto px-8 py-12">
