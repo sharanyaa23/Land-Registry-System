@@ -22,7 +22,6 @@ const ID = {
   surveyResult: 'ContentPlaceHolder1_ddlsurveyno',
   mobileInput: 'ContentPlaceHolder1_txtmobile1',
   captchaInput: 'ContentPlaceHolder1_txtcaptcha',
-  submitBtn: 'ContentPlaceHolder1_btnmainsubmit',
 };
 
 const SITE_URL = 'https://bhulekh.mahabhumi.gov.in/NewBhulekh.aspx';
@@ -40,12 +39,12 @@ class MahabhulekhScraper {
 
     let browser = null;
     let finalHTML = '';
+    let match = null;
 
     try {
       browser = await puppeteer.launch(LAUNCH_OPTS);
       const page = await browser.newPage();
 
-      // Anti-detection
       await page.evaluateOnNewDocument(() => {
         Object.defineProperty(Function.prototype, 'caller', { get: () => null });
         Object.defineProperty(Function.prototype, 'callee', { get: () => null });
@@ -54,156 +53,156 @@ class MahabhulekhScraper {
       await page.goto(SITE_URL, { waitUntil: 'networkidle2', timeout: 60000 });
       await delay(4000);
 
-      // Select District, Taluka, Village
       let frame = await this.findFrameWithElement(page, `#${ID.district}`);
-      await this.setSelectValue(frame, ID.district, districtValue); 
+      await this.setSelectValue(frame, ID.district, districtValue);
       await delay(1800);
 
-      await this.setSelectValue(frame, ID.taluka, talukaValue); 
+      await this.setSelectValue(frame, ID.taluka, talukaValue);
       await delay(1800);
 
-      await this.setSelectValue(frame, ID.village, villageValue); 
+      await this.setSelectValue(frame, ID.village, villageValue);
       await delay(3000);
 
-      // Select CTS Search Type
       frame = await this.findFrameWithElement(page, `#${ID.rbtnSearchTypeCTS}`);
       await frame.evaluate(id => document.getElementById(id)?.click(), ID.rbtnSearchTypeCTS);
       await delay(2000);
 
-      // Enter Survey Number prefix
       const prefix = fullSurveyInput.split('/')[0].trim();
       frame = await this.findFrameWithElement(page, `#${ID.ctsInput}`);
       await frame.type(`#${ID.ctsInput}`, prefix, { delay: 80 });
       await delay(1500);
 
-      // Click Search
       frame = await this.findFrameWithElement(page, `#${ID.searchBtn}`);
       await frame.click(`#${ID.searchBtn}`);
       await delay(2500);
 
-      // Select exact survey from dropdown
       frame = await this.findFrameWithElement(page, `#${ID.surveyResult}`);
       const surveyOptions = await frame.$$eval(`#${ID.surveyResult} option`, opts =>
         opts.map(o => ({ label: o.textContent.trim(), value: o.value })).filter(o => o.label)
       );
-
-      const match = surveyOptions.find(o => o.label === fullSurveyInput) || surveyOptions[0];
-      if (match) {
-        await this.setSelectValue(frame, ID.surveyResult, match.value);
-      }
+      match = surveyOptions.find(o => o.label === fullSurveyInput) || surveyOptions[0];
+      if (match) await this.setSelectValue(frame, ID.surveyResult, match.value);
       await delay(2500);
 
-      // Enter Mobile Number
       console.log(`Entering Mobile: ${mobile}`);
       frame = await this.findFrameWithElement(page, `#${ID.mobileInput}`);
-      
       await frame.evaluate((id, val) => {
         const el = document.getElementById(id);
         if (el) {
           el.focus();
           el.value = val;
-          ['input', 'change', 'blur', 'keydown'].forEach(eventType => {
-            el.dispatchEvent(new Event(eventType, { bubbles: true }));
-          });
+          ['input', 'change', 'blur'].forEach(ev => el.dispatchEvent(new Event(ev, { bubbles: true })));
         }
       }, ID.mobileInput, mobile);
 
-      await delay(1000);
+      await delay(2000);
 
-      // CAPTCHA Instruction
       console.log('\nPlease solve the CAPTCHA and CLICK the SUBMIT button yourself.');
-      console.log(' Wait until the FULL result appears (table with मालकाचे नाव, खाता, क्षेत्र, etc.)');
-      console.log('Do not close the browser until you see " Result page loaded successfully!"');
+      console.log('Wait until you see the big 7/12 result image on screen.');
+      console.log('Do not close the browser until you see "Result page loaded successfully!"');
 
-      // ====================== IMPROVED POLLING ======================
+      await delay(4000);
+
       const startTime = Date.now();
-      const MAX_WAIT_MS = 180000; // 3 minutes
-
+      const MAX_WAIT_MS = 300000;
       let successDetected = false;
 
       while (Date.now() - startTime < MAX_WAIT_MS) {
-        await delay(2000);
+        await delay(3000);
 
         try {
           finalHTML = await page.content();
         } catch (e) {
-          console.log(' Browser was closed by user');
-          return {
-            verified: false,
-            reason: "Browser was closed before result loaded",
-            html: "",
-            retry: true
-          };
+          return { verified: false, reason: "Browser closed", html: "", retry: true };
         }
 
         const lowerHTML = finalHTML.toLowerCase();
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
 
-        // Strong success conditions based on your actual result screenshot
-        const hasOwnerTable = lowerHTML.includes('मालकाचे नाव') || 
-                             lowerHTML.includes('owner name') ||
-                             lowerHTML.includes('malik') ||
-                             finalHTML.includes('gvOwnerDetails');
-
-        const hasKhataArea = (lowerHTML.includes('खाता') || lowerHTML.includes('khata')) &&
-                            (lowerHTML.includes('क्षेत्र') || lowerHTML.includes('area') || 
-                             lowerHTML.includes('8.80'));
-
-        const hasSurveyInfo = lowerHTML.includes('सर्व्हे नंबर') || 
-                             lowerHTML.includes('गट नंबर') ||
-                             lowerHTML.includes(fullSurveyInput.toLowerCase());
-
-        const hasResultTable = hasOwnerTable || hasKhataArea || hasSurveyInfo;
-
-        // Check if still stuck on CAPTCHA error
-        const hasCaptchaError = lowerHTML.includes('invalid captcha') || 
-                               lowerHTML.includes('incorrect captcha') ||
+        const hasCaptchaError = lowerHTML.includes('invalid captcha') ||
                                lowerHTML.includes('कॅप्चा चुकीचा') ||
-                               lowerHTML.includes('captcha') && lowerHTML.includes('wrong');
+                               lowerHTML.includes('incorrect captcha');
 
-        if (hasResultTable && !hasCaptchaError) {
-          console.log(' Result page loaded successfully!');
+        // Large image detection - this is now the primary signal
+        const largeImageCount = await this.getLargeImageCount(page);
+
+        const hasResultButton = lowerHTML.includes('back') || 
+                               lowerHTML.includes('print') || 
+                               lowerHTML.includes('download') ||
+                               lowerHTML.includes('मागे') || 
+                               lowerHTML.includes('प्रिंट');
+
+        console.log(
+          `[Poll] largeImgCount=${largeImageCount} | resultBtn=${hasResultButton} | htmlLen=${finalHTML.length} | captchaErr=${hasCaptchaError} | elapsed=${elapsed}s`
+        );
+
+        // SUCCESS: Big image + result button + big HTML size
+        const isRealResult = 
+          largeImageCount >= 1 &&
+          hasResultButton &&
+          finalHTML.length > 650000 &&   // real result has huge HTML due to image
+          !hasCaptchaError;
+
+        if (isRealResult) {
+          console.log(' Result page loaded successfully! (Image-based 7/12 result detected)');
           successDetected = true;
+
+          try {
+            const filename = `land_record_${fullSurveyInput.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.png`;
+            await page.screenshot({ fullPage: true, path: filename });
+            console.log(`Screenshot saved: ${filename}`);
+          } catch (e) {
+            console.log('Screenshot failed');
+          }
           break;
         }
 
         if (hasCaptchaError) {
           console.log('Still showing CAPTCHA error. Please re-enter correct CAPTCHA and click Submit again.');
         }
-
-        // Progress log every 10 seconds
-        if ((Date.now() - startTime) % 10000 < 2500) {
-          console.log(` Waiting for result... (${Math.floor((Date.now() - startTime)/1000)}s elapsed)`);
-        }
       }
 
-      const isSuccess = successDetected && finalHTML.length > 70000;
-
       return {
-        verified: isSuccess,
+        verified: successDetected,
         surveyLabel: match?.label || fullSurveyInput,
         html: finalHTML,
-        retry: !isSuccess,
-        reason: isSuccess ? null : "Result not detected or incomplete"
+        retry: !successDetected,
+        reason: successDetected ? null : "Result not detected within timeout",
       };
 
     } catch (err) {
       console.error('ERROR:', err.message);
       return {
         verified: false,
-        reason: err.message.includes('Target closed') || err.message.includes('Session closed') 
-                  ? "Browser was closed by user" 
-                  : err.message,
+        reason: err.message,
         html: finalHTML || '',
-        retry: true
+        retry: true,
       };
     } finally {
       if (browser) {
-        // await browser.close();   // Keep commented during development
+        // await browser.close();
       }
     }
   }
 
-  // Helper Methods
+  // Helper to count large images across all frames
+  async getLargeImageCount(page) {
+    let count = 0;
+    for (const f of page.frames()) {
+      try {
+        const foundCount = await f.evaluate(() => {
+          return Array.from(document.querySelectorAll('img')).filter(img => {
+            const w = img.naturalWidth || img.clientWidth || 0;
+            const h = img.naturalHeight || img.clientHeight || 0;
+            return (w > 600 && h > 400) || w > 850;
+          }).length;
+        });
+        count += foundCount;
+      } catch (_) {}
+    }
+    return count;
+  }
+
   async setSelectValue(frame, id, value) {
     return frame.evaluate((id, val) => {
       const el = document.getElementById(id);
@@ -215,13 +214,13 @@ class MahabhulekhScraper {
     }, id, value);
   }
 
-  async findFrameWithElement(page, selector, timeout = 30000) {
+  async findFrameWithElement(page, selector, timeout = 40000) {
     const start = Date.now();
     while (Date.now() - start < timeout) {
       for (const f of page.frames()) {
         if (await f.$(selector)) return f;
       }
-      await delay(400);
+      await delay(500);
     }
     throw new Error(`Element ${selector} not found in any frame`);
   }
