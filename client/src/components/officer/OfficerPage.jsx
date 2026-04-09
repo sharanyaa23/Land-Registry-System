@@ -3,7 +3,7 @@ import SharedNavbar from '../SharedNavbar.jsx';
 import Footer from '../Footer.jsx';
 import StatusBadge from '../shared/StatusBadge.jsx';
 import SpatialView from '../shared/SpatialView.jsx';
-import { IconCases, IconCheck, IconAlert, IconShield, IconDocument, IconExternalLink } from '../icons/Icons.jsx';
+import { IconCases, IconCheck, IconAlert, IconDocument, IconExternalLink } from '../icons/Icons.jsx';
 import useApi, { useMutation } from '../../hooks/useApi.js';
 import { officerAPI, verificationAPI } from '../../services/api.js';
 

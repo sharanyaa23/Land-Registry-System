@@ -6,7 +6,7 @@ import StatCard from '../shared/StatCard.jsx';
 import StatusBadge from '../shared/StatusBadge.jsx';
 import { IconDocument, IconShield, IconUpload, IconSearch, IconExternalLink } from '../icons/Icons.jsx';
 import useApi from '../../hooks/useApi.js';
-import { landAPI, ipfsAPI } from '../../services/api.js';
+import { landAPI } from '../../services/api.js';
 
 const BG = { backgroundColor: '#0c0e14', backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(116,117,125,0.04) 1px, transparent 0)', backgroundSize: '32px 32px', color: '#e5e4ed' };
 

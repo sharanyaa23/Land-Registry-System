@@ -85,8 +85,9 @@ export const escrowAPI = {
 
 /* ── IPFS ────────────────────────────────────────── */
 export const ipfsAPI = {
-  upload:      (formData) => api.post('/ipfs/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
-  getDocument: (cid)      => api.get(`/ipfs/${cid}`),
+  upload:            (formData) => api.post('/ipfs/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  extractAndCompare: (formData) => api.post('/ipfs/extract-and-compare', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  getDocument:       (cid)      => api.get(`/ipfs/${cid}`),
 };
 
 /* ── Verification ────────────────────────────────── */

@@ -21,7 +21,7 @@ export const NAVBAR_CONFIG = {
   OFFICER: {
     links: [
       { to: '/officer', label: 'Dashboard' },
-      { to: '/cases', label: 'Cases' },
+      { to: '/officer/cases', label: 'Cases' },
       { to: '/officer/documents', label: 'Documents' }
     ],
     activeClass: 'text-[#7C5CFF] border-b-2 border-[#7C5CFF] pb-1',

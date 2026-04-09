@@ -4,7 +4,7 @@ import Footer from '../Footer.jsx';
 import PageHeader from '../shared/PageHeader.jsx';
 import StatCard from '../shared/StatCard.jsx';
 import StatusBadge from '../shared/StatusBadge.jsx';
-import { IconLand, IconTransfer, IconMap, IconSearch, IconNotification, IconCheck, IconChevron, IconAlert } from '../icons/Icons.jsx';
+import { IconLand, IconTransfer, IconSearch, IconNotification, IconCheck, IconChevron, IconAlert } from '../icons/Icons.jsx';
 import SpatialView from '../shared/SpatialView.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import useApi, { useMutation } from '../../hooks/useApi.js';
@@ -14,7 +14,7 @@ const BG = { backgroundColor: '#0c0e14', backgroundImage: 'radial-gradient(circl
 const truncAddr = (a) => a ? `${a.slice(0, 6)}...${a.slice(-4)}` : '\u2014';
 
 const BuyerPage = () => {
-  const { truncatedWallet } = useAuth();
+  useAuth(); // ensure auth context is available
 
   const { data: myLands, loading: landsLoading } = useApi(useCallback(() => landAPI.list({ role: 'buyer' }), []));
   const { data: transfers, loading: transfersLoading } = useApi(useCallback(() => transferAPI.getMyTransfers(), []));

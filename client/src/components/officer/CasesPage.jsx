@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import SharedNavbar from '../SharedNavbar.jsx';
 import Footer from '../Footer.jsx';
 import StatusBadge from '../shared/StatusBadge.jsx';
-import { IconCases, IconCheck, IconAlert, IconDocument } from '../icons/Icons.jsx';
+import { IconCheck, IconAlert, IconDocument } from '../icons/Icons.jsx';
 import useApi, { useMutation } from '../../hooks/useApi.js';
 import { officerAPI } from '../../services/api.js';
 

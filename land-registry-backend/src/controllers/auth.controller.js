@@ -2,13 +2,14 @@ const asyncHandler = require('../utils/asyncHandler');
 const nonceService = require('../services/auth/nonce.service');
 const signatureService = require('../services/auth/signature.service');
 const { buildSiweMessage } = require('../utils/walletUtils');
-const { authenticate } = require('../middleware/auth.middleware');
 const User = require('../models/User.model');
 const logger = require('../utils/logger');
 
 /**
  * POST /auth/nonce
  * Generate a nonce for wallet-based SIWE authentication.
+ * Also returns whether the wallet already exists and its role,
+ * so the frontend can skip role-selection for returning users.
  */
 exports.getNonce = asyncHandler(async (req, res) => {
   const { walletAddress } = req.body;
@@ -28,10 +29,14 @@ exports.getNonce = asyncHandler(async (req, res) => {
     uri: process.env.FRONTEND_URI || 'http://localhost:3000'
   });
 
+  // Check if wallet is already registered — helps frontend decide the flow
+  const existingUser = await User.findOne({ walletAddress: walletAddress.toLowerCase() }).select('role').lean();
+
   res.json({
     success: true,
     nonce,
-    message
+    message,
+    existingRole: existingUser?.role || null
   });
 });
 
@@ -39,6 +44,7 @@ exports.getNonce = asyncHandler(async (req, res) => {
  * POST /auth/verify
  * Verify a signed SIWE message and issue JWT.
  * Auto-creates profile if user is new.
+ * For returning users, the role in DB is preserved (no escalation).
  */
 exports.verifySignature = asyncHandler(async (req, res) => {
   const { message, signature, role } = req.body;
@@ -50,7 +56,7 @@ exports.verifySignature = asyncHandler(async (req, res) => {
     });
   }
 
-  // Validate role if provided
+  // Validate role if provided — only buyer/seller can self-select
   const validRoles = ['seller', 'buyer'];
   const userRole = validRoles.includes(role) ? role : 'buyer';
 
@@ -62,6 +68,7 @@ exports.verifySignature = asyncHandler(async (req, res) => {
 
   logger.info('User authenticated', {
     walletAddress: result.user.walletAddress,
+    role: result.user.role,
     isNew: result.isNew
   });
 
@@ -85,5 +92,60 @@ exports.getMe = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     user
+  });
+});
+
+/**
+ * POST /auth/whitelist-officer
+ * Admin-only: pre-whitelist a wallet as an officer for a tehsil.
+ * Officers cannot self-register — they must be whitelisted here.
+ */
+exports.whitelistOfficer = asyncHandler(async (req, res) => {
+  const { walletAddress, tehsil } = req.body;
+
+  if (!walletAddress || !tehsil) {
+    return res.status(400).json({ success: false, error: 'walletAddress and tehsil required' });
+  }
+
+  // Check if wallet already exists
+  let user = await User.findOne({ walletAddress: walletAddress.toLowerCase() });
+
+  if (user) {
+    // Upgrade existing user to officer
+    if (user.role === 'officer') {
+      return res.status(409).json({ success: false, error: 'Wallet is already an officer' });
+    }
+    user.role = 'officer';
+    user.officerMeta = {
+      tehsil,
+      whitelistedBy: req.user.walletAddress,
+      whitelistedAt: new Date()
+    };
+    await user.save();
+    logger.info('Existing user upgraded to officer', { walletAddress, tehsil, by: req.user.walletAddress });
+  } else {
+    // Pre-create officer account
+    user = await User.create({
+      walletAddress: walletAddress.toLowerCase(),
+      role: 'officer',
+      profile: {},
+      officerMeta: {
+        tehsil,
+        whitelistedBy: req.user.walletAddress,
+        whitelistedAt: new Date()
+      },
+      isActive: true
+    });
+    logger.info('Officer pre-whitelisted', { walletAddress, tehsil, by: req.user.walletAddress });
+  }
+
+  res.status(201).json({
+    success: true,
+    user: {
+      _id: user._id,
+      walletAddress: user.walletAddress,
+      role: user.role,
+      officerMeta: user.officerMeta
+    }
   });
 });

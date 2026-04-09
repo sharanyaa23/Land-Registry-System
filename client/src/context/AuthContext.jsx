@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { BrowserProvider } from 'ethers';
-import { authAPI, profileAPI } from '../services/api';
+import { authAPI } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -67,11 +67,16 @@ export const AuthProvider = ({ children }) => {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Connect wallet + SIWE auth
+  /**
+   * Connect wallet + SIWE auth.
+   * Returns { user, isNew, existingRole } so the caller can decide navigation.
+   * - Returning users: existingRole is set, role param is ignored
+   * - New users: role param determines their role (buyer/seller)
+   */
   const connectWallet = useCallback(async (role = 'buyer') => {
     if (!window.ethereum) {
       alert('Please install MetaMask to use this application.');
-      return;
+      return null;
     }
     try {
       setLoading(true);
@@ -85,15 +90,17 @@ export const AuthProvider = ({ children }) => {
       const network = await provider.getNetwork();
       setChainId(Number(network.chainId));
 
-      // Backend returns { success, nonce, message }
+      // Backend returns { success, nonce, message, existingRole }
       const nonceRes = await authAPI.getNonce(address);
       const siweMessage = nonceRes.data.message;
+      const existingRole = nonceRes.data.existingRole;
 
       // Sign the SIWE message
       const signer = await provider.getSigner();
       const signature = await signer.signMessage(siweMessage);
 
-      // Verify with backend => JWT, pass role for new user assignment
+      // Verify with backend => JWT
+      // For returning users, backend ignores the role param and uses their existing role
       const authRes = await authAPI.verifySignature({ message: siweMessage, signature, role });
       const jwt = authRes.data.token;
       const userData = authRes.data.user;
@@ -102,8 +109,15 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('dlr_user', JSON.stringify(userData));
       setToken(jwt);
       setUser(userData);
+
+      return {
+        user: userData,
+        isNew: authRes.data.isNew,
+        existingRole
+      };
     } catch (err) {
       console.error('Wallet connection failed:', err);
+      return null;
     } finally {
       setLoading(false);
     }

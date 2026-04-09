@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import SharedNavbar from '../SharedNavbar.jsx';
 import Footer from '../Footer.jsx';
-import StatusBadge from '../shared/StatusBadge.jsx';
-import { IconDocument, IconShield, IconAlert, IconExternalLink, IconMap } from '../icons/Icons.jsx';
+
+import { IconDocument, IconShield, IconAlert } from '../icons/Icons.jsx';
 import useApi from '../../hooks/useApi.js';
 import { officerAPI } from '../../services/api.js';
 

@@ -1,16 +1,17 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import SharedNavbar from '../SharedNavbar.jsx';
 import Footer from '../Footer.jsx';
 import PageHeader from '../shared/PageHeader.jsx';
 import StatCard from '../shared/StatCard.jsx';
 import StatusBadge from '../shared/StatusBadge.jsx';
+import SpatialView from '../shared/SpatialView.jsx';
 import { IconLand, IconTransfer, IconShield, IconAlert, IconNotification, IconDocument, IconMap, IconCheck, IconUpload, IconUser, IconBlockchain } from '../icons/Icons.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import useApi, { useMutation } from '../../hooks/useApi.js';
-import { landAPI, coOwnerAPI, transferAPI, verificationAPI, notificationAPI } from '../../services/api.js';
+import { landAPI, coOwnerAPI, transferAPI, verificationAPI, notificationAPI, ipfsAPI } from '../../services/api.js';
 
 const SellerPage = () => {
-  const { wallet } = useAuth();
+  useAuth(); // ensure auth context is available
 
   // Data
   const { data: lands, loading: landsLoading, refetch: refetchLands } = useApi(useCallback(() => landAPI.list({ role: 'seller' }), []));
@@ -40,10 +41,55 @@ const SellerPage = () => {
 
   // Selected land verification
   const [selectedLandId, setSelectedLandId] = useState(null);
-  const { data: verification } = useApi(
+  const { data: verificationRaw, refetch: refetchVerification } = useApi(
     useCallback(() => selectedLandId ? verificationAPI.getResults(selectedLandId) : Promise.resolve({ data: null }), [selectedLandId]),
     [selectedLandId], { immediate: !!selectedLandId }
   );
+  const verification = verificationRaw?.result || verificationRaw;
+
+  // File Upload State
+  const fileInputRef = useRef(null);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+
+  const handleDocumentUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !selectedLandId) return;
+
+    setUploadingDoc(true);
+    setUploadError(null);
+
+    try {
+      const land = landsList.find(l => l._id === selectedLandId);
+      if (!land) throw new Error('Land not found');
+
+      const userInput = {
+        landId: selectedLandId,
+        ownerName: land.owner?.profile?.fullName || 'Seller Name', // Fallback if profile missing
+        surveyNumber: land.location?.surveyNumber || land.surveyNumber || '',
+        area: land.area?.value || land.area || 0,
+        areaUnit: land.area?.unit || 'hectare',
+        district: land.location?.district || land.district || '',
+        taluka: land.location?.taluka || land.taluka || '',
+        village: land.location?.village || land.village || ''
+      };
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('userInput', JSON.stringify(userInput));
+
+      await ipfsAPI.extractAndCompare(formData);
+      
+      await refetchLands();
+      await refetchVerification();
+    } catch (err) {
+      console.error(err);
+      setUploadError(err.response?.data?.error || err.message || 'Verification failed');
+    } finally {
+      setUploadingDoc(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const { execute: acceptOffer } = useMutation(useCallback((id) => transferAPI.accept(id), []));
   const { execute: rejectOffer } = useMutation(useCallback((id) => transferAPI.reject(id), []));
@@ -79,11 +125,15 @@ const SellerPage = () => {
                 </div>
               </div>
             </div>
-            <div className="flex-grow flex items-center justify-center bg-surface-container-low">
-              <div className="text-center text-on-surface-variant/40">
-                <IconMap className="mx-auto mb-3 opacity-30" size={48} />
-                <p className="text-xs">Select a land asset to view boundary polygon</p>
-              </div>
+            <div className="flex-grow flex items-center justify-center bg-surface-container-low relative">
+              {selectedLandId ? (
+                <SpatialView className="absolute inset-0" />
+              ) : (
+                <div className="text-center text-on-surface-variant/40">
+                  <IconMap className="mx-auto mb-3 opacity-30" size={48} />
+                  <p className="text-xs">Select a land asset to view boundary polygon</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -181,23 +231,42 @@ const SellerPage = () => {
               <p className="text-xs text-on-surface-variant/40 text-center py-8 flex-grow flex items-center justify-center">Select a land from the table to view verification</p>
             ) : (
               <div className="space-y-5 flex-grow">
+                {uploadError && <div className="p-3 bg-error/10 border border-error/20 rounded-lg text-error text-[10px]">{uploadError}</div>}
                 {[
-                  { label: 'Name Match', value: verification?.nameScore || 0 },
-                  { label: 'Area Consistency', value: verification?.areaScore || 0 },
+                  { label: 'Name Match', value: verification?.comparison?.nameMatch?.score ? Math.round(verification.comparison.nameMatch.score * 100) : 0 },
+                  { label: 'Area Consistency', value: verification?.comparison?.areaMatch?.score ? Math.round(verification.comparison.areaMatch.score * 100) : 0 },
                 ].map(bar => (
                   <div key={bar.label} className="space-y-1.5">
                     <div className="flex justify-between text-[10px] font-label uppercase text-on-surface-variant/60">
                       <span>{bar.label}</span><span>{bar.value}%</span>
                     </div>
                     <div className="h-1 w-full bg-surface-container-high rounded-full overflow-hidden">
-                      <div className="h-full bg-secondary rounded-full transition-all" style={{ width: `${bar.value}%` }} />
+                      <div className={`h-full rounded-full transition-all ${bar.value >= 80 ? 'bg-secondary' : bar.value > 50 ? 'bg-primary' : 'bg-error'}`} style={{ width: `${bar.value}%` }} />
                     </div>
                   </div>
                 ))}
               </div>
             )}
-            <button className="mt-auto w-full py-3 border border-outline-variant/20 rounded-lg text-on-surface text-xs font-medium hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2">
-              <IconUpload size={14} /> Upload 7/12 Document
+            
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              style={{ display: 'none' }} 
+              accept="image/*,application/pdf"
+              onChange={handleDocumentUpload}
+            />
+            
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              disabled={!selectedLandId || uploadingDoc}
+              className="mt-auto w-full py-3 border border-outline-variant/20 rounded-lg text-on-surface text-xs font-medium hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {uploadingDoc ? (
+                <div className="w-4 h-4 border-2 border-on-surface border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <IconUpload size={14} />
+              )}
+              {uploadingDoc ? 'Uploading & Extracting...' : 'Upload 7/12 Document'}
             </button>
           </div>
         </div>

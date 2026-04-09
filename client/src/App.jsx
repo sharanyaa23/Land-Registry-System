@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import RoleGuard from './components/shared/RoleGuard.jsx';
 import LandingPage from './components/pages/LandingPage.jsx';
 import BuyerPage from './components/buyer/BuyerPage.jsx';
 import SellerPage from './components/seller/SellerPage.jsx';
@@ -13,13 +14,13 @@ import OfficerDocumentsPage from './components/officer/OfficerDocumentsPage.jsx'
 import CasesPage from './components/officer/CasesPage.jsx';
 import './tailwind.css';
 
-// ── Protected Route wrapper ────────────────────────────────────────
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+// ── Auto-redirect authenticated users from / to their dashboard ────
+const SmartLanding = () => {
+  const { isAuthenticated, user, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center" style={{ backgroundColor: '#0c0e14' }}>
         <div className="flex flex-col items-center gap-4">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
           <span className="text-on-surface-variant font-label text-sm">Loading...</span>
@@ -28,36 +29,42 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+  // Already authenticated → redirect to role dashboard
+  if (isAuthenticated && user?.role) {
+    const roleRoutes = { buyer: '/buyer', seller: '/seller', officer: '/officer', admin: '/officer' };
+    return <Navigate to={roleRoutes[user.role] || '/buyer'} replace />;
   }
 
-  return children;
+  return <LandingPage />;
 };
 
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<SmartLanding />} />
 
-      {/* Buyer routes */}
-      <Route path="/buyer" element={<ProtectedRoute><BuyerPage /></ProtectedRoute>} />
-      <Route path="/buyer/documents" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
-      <Route path="/buyer/transfers" element={<ProtectedRoute><TransfersPage /></ProtectedRoute>} />
+      {/* Buyer routes — buyer only */}
+      <Route path="/buyer" element={<RoleGuard allowed={['buyer']}><BuyerPage /></RoleGuard>} />
+      <Route path="/buyer/documents" element={<RoleGuard allowed={['buyer']}><DocumentsPage /></RoleGuard>} />
+      <Route path="/buyer/transfers" element={<RoleGuard allowed={['buyer']}><TransfersPage /></RoleGuard>} />
 
-      {/* Seller routes */}
-      <Route path="/seller" element={<ProtectedRoute><SellerPage /></ProtectedRoute>} />
-      <Route path="/seller/documents" element={<ProtectedRoute><SellerDocumentsPage /></ProtectedRoute>} />
-      <Route path="/seller/transfers" element={<ProtectedRoute><SellerTransfersPage /></ProtectedRoute>} />
+      {/* Seller routes — seller only */}
+      <Route path="/seller" element={<RoleGuard allowed={['seller']}><SellerPage /></RoleGuard>} />
+      <Route path="/seller/documents" element={<RoleGuard allowed={['seller']}><SellerDocumentsPage /></RoleGuard>} />
+      <Route path="/seller/transfers" element={<RoleGuard allowed={['seller']}><SellerTransfersPage /></RoleGuard>} />
 
-      {/* Officer routes */}
-      <Route path="/officer" element={<ProtectedRoute><OfficerPage /></ProtectedRoute>} />
-      <Route path="/officer/documents" element={<ProtectedRoute><OfficerDocumentsPage /></ProtectedRoute>} />
-      <Route path="/cases" element={<ProtectedRoute><CasesPage /></ProtectedRoute>} />
+      {/* Officer routes — officer + admin */}
+      <Route path="/officer" element={<RoleGuard allowed={['officer', 'admin']}><OfficerPage /></RoleGuard>} />
+      <Route path="/officer/documents" element={<RoleGuard allowed={['officer', 'admin']}><OfficerDocumentsPage /></RoleGuard>} />
+      <Route path="/officer/cases" element={<RoleGuard allowed={['officer', 'admin']}><CasesPage /></RoleGuard>} />
 
-      {/* Legacy routes */}
-      <Route path="/documents" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
-      <Route path="/transfers" element={<ProtectedRoute><TransfersPage /></ProtectedRoute>} />
+      {/* Legacy routes → redirect to role-appropriate routes */}
+      <Route path="/documents" element={<Navigate to="/buyer/documents" replace />} />
+      <Route path="/transfers" element={<Navigate to="/buyer/transfers" replace />} />
+      <Route path="/cases" element={<Navigate to="/officer/cases" replace />} />
+
+      {/* Catch-all */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
