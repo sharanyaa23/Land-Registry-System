@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   walletAddress: {
     type: String,
-    unique: true,
+    unique: true,           
     required: true,
     lowercase: true,
     trim: true,
@@ -16,17 +16,17 @@ const userSchema = new mongoose.Schema({
   },
   profile: {
     fullName: { type: String, trim: true },
-    aadhaarHash: String,          // SHA-256 of Aadhaar — optional KYC
+    aadhaarHash: String,
     phone: { type: String, trim: true },
     email: { type: String, trim: true, lowercase: true },
     kycVerified: { type: Boolean, default: false }
   },
-  nonce: String,                   // SIWE challenge nonce
+  nonce: String,
 
   // Officer-specific fields
   officerMeta: {
     tehsil: String,
-    whitelistedBy: String,         // admin wallet that whitelisted
+    whitelistedBy: String,
     whitelistedAt: Date
   },
 
@@ -36,8 +36,7 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for fast wallet lookup
-userSchema.index({ walletAddress: 1 });
+// Only add extra compound index (remove the duplicate walletAddress index)
 userSchema.index({ role: 1, isActive: 1 });
 
 module.exports = mongoose.model('User', userSchema);

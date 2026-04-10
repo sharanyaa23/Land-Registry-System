@@ -1,4 +1,6 @@
 // src/services/mahabhulekh/scraper.service.js
+
+const path = require('path');
 const puppeteer = require('puppeteer');
 const dotenv = require('dotenv');
 dotenv.config();
@@ -9,22 +11,26 @@ const LAUNCH_OPTS = {
   headless: false,
   slowMo: 50,
   args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security'],
-  defaultViewport: { width: 1366, height: 900 },   // Normal size so CAPTCHA is visible
+  defaultViewport: { width: 1366, height: 900 },
 };
 
 const ID = {
-  district: 'ContentPlaceHolder1_ddlMainDist',
-  taluka: 'ContentPlaceHolder1_ddlTalForAll',
-  village: 'ContentPlaceHolder1_ddlVillForAll',
+  district:        'ContentPlaceHolder1_ddlMainDist',
+  taluka:          'ContentPlaceHolder1_ddlTalForAll',
+  village:         'ContentPlaceHolder1_ddlVillForAll',
   rbtnSearchTypeCTS: 'ContentPlaceHolder1_rbtnSearchType_0',
-  ctsInput: 'ContentPlaceHolder1_txtcsno',
-  searchBtn: 'ContentPlaceHolder1_btnsearchfind',
-  surveyResult: 'ContentPlaceHolder1_ddlsurveyno',
-  mobileInput: 'ContentPlaceHolder1_txtmobile1',
-  captchaInput: 'ContentPlaceHolder1_txtcaptcha',
+  ctsInput:        'ContentPlaceHolder1_txtcsno',
+  searchBtn:       'ContentPlaceHolder1_btnsearchfind',
+  surveyResult:    'ContentPlaceHolder1_ddlsurveyno',
+  mobileInput:     'ContentPlaceHolder1_txtmobile1',
+  captchaInput:    'ContentPlaceHolder1_txtcaptcha',
 };
 
 const SITE_URL = 'https://bhulekh.mahabhumi.gov.in/NewBhulekh.aspx';
+
+// Directory where captured images are saved.
+// Override via IMAGE_SAVE_DIR env var; defaults to process.cwd().
+const IMAGE_SAVE_DIR = process.env.IMAGE_SAVE_DIR || process.cwd();
 
 class MahabhulekhScraper {
 
@@ -37,9 +43,10 @@ class MahabhulekhScraper {
       mobile = '9999999999',
     } = params;
 
-    let browser = null;
-    let finalHTML = '';
-    let match = null;
+    let browser       = null;
+    let finalHTML     = '';
+    let match         = null;
+    let mainImagePath = null; // ← absolute path to saved PNG (set when image-based)
 
     try {
       browser = await puppeteer.launch(LAUNCH_OPTS);
@@ -53,6 +60,7 @@ class MahabhulekhScraper {
       await page.goto(SITE_URL, { waitUntil: 'networkidle2', timeout: 60000 });
       await delay(4000);
 
+      // ── Fill district / taluka / village ───────────────────────────────────
       let frame = await this.findFrameWithElement(page, `#${ID.district}`);
       await this.setSelectValue(frame, ID.district, districtValue);
       await delay(1800);
@@ -63,19 +71,23 @@ class MahabhulekhScraper {
       await this.setSelectValue(frame, ID.village, villageValue);
       await delay(3000);
 
+      // ── CTS search type ────────────────────────────────────────────────────
       frame = await this.findFrameWithElement(page, `#${ID.rbtnSearchTypeCTS}`);
       await frame.evaluate(id => document.getElementById(id)?.click(), ID.rbtnSearchTypeCTS);
       await delay(2000);
 
+      // ── Survey prefix ──────────────────────────────────────────────────────
       const prefix = fullSurveyInput.split('/')[0].trim();
       frame = await this.findFrameWithElement(page, `#${ID.ctsInput}`);
       await frame.type(`#${ID.ctsInput}`, prefix, { delay: 80 });
       await delay(1500);
 
+      // ── Search ─────────────────────────────────────────────────────────────
       frame = await this.findFrameWithElement(page, `#${ID.searchBtn}`);
       await frame.click(`#${ID.searchBtn}`);
       await delay(2500);
 
+      // ── Select survey number from dropdown ────────────────────────────────
       frame = await this.findFrameWithElement(page, `#${ID.surveyResult}`);
       const surveyOptions = await frame.$$eval(`#${ID.surveyResult} option`, opts =>
         opts.map(o => ({ label: o.textContent.trim(), value: o.value })).filter(o => o.label)
@@ -84,6 +96,7 @@ class MahabhulekhScraper {
       if (match) await this.setSelectValue(frame, ID.surveyResult, match.value);
       await delay(2500);
 
+      // ── Mobile number ──────────────────────────────────────────────────────
       console.log(`Entering Mobile: ${mobile}`);
       frame = await this.findFrameWithElement(page, `#${ID.mobileInput}`);
       await frame.evaluate((id, val) => {
@@ -91,7 +104,9 @@ class MahabhulekhScraper {
         if (el) {
           el.focus();
           el.value = val;
-          ['input', 'change', 'blur'].forEach(ev => el.dispatchEvent(new Event(ev, { bubbles: true })));
+          ['input', 'change', 'blur'].forEach(ev =>
+            el.dispatchEvent(new Event(ev, { bubbles: true }))
+          );
         }
       }, ID.mobileInput, mobile);
 
@@ -99,12 +114,13 @@ class MahabhulekhScraper {
 
       console.log('\nPlease solve the CAPTCHA and CLICK the SUBMIT button yourself.');
       console.log('Wait until you see the big 7/12 result image on screen.');
-      console.log('Do not close the browser until you see " Result page loaded successfully!"');
+      console.log('Do not close the browser until you see "Result page loaded successfully!"');
 
       await delay(4000);
 
-      const startTime = Date.now();
-      const MAX_WAIT_MS = 300000;
+      // ── Poll for result ────────────────────────────────────────────────────
+      const startTime   = Date.now();
+      const MAX_WAIT_MS = 300000; // 5 minutes
       let successDetected = false;
 
       while (Date.now() - startTime < MAX_WAIT_MS) {
@@ -113,40 +129,48 @@ class MahabhulekhScraper {
         try {
           finalHTML = await page.content();
         } catch (e) {
-          return { verified: false, reason: "Browser closed", html: "", retry: true };
+          return {
+            verified: false,
+            reason:   'Browser closed unexpectedly',
+            html:     '',
+            retry:    true,
+            imageBased:    false,
+            mainImagePath: null,
+          };
         }
 
         const lowerHTML = finalHTML.toLowerCase();
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const elapsed   = Math.floor((Date.now() - startTime) / 1000);
 
-        const hasCaptchaError = lowerHTML.includes('invalid captcha') ||
-                               lowerHTML.includes('कॅप्चा चुकीचा') ||
-                               lowerHTML.includes('incorrect captcha');
+        const hasCaptchaError =
+          lowerHTML.includes('invalid captcha') ||
+          lowerHTML.includes('कॅप्चा चुकीचा') ||
+          lowerHTML.includes('incorrect captcha');
 
         const largeImageCount = await this.getLargeImageCount(page);
 
-        const hasResultButton = lowerHTML.includes('back') || 
-                               lowerHTML.includes('print') || 
-                               lowerHTML.includes('download') ||
-                               lowerHTML.includes('मागे') || 
-                               lowerHTML.includes('प्रिंट');
+        const hasResultButton =
+          lowerHTML.includes('back')    || lowerHTML.includes('print')    ||
+          lowerHTML.includes('download')|| lowerHTML.includes('मागे')     ||
+          lowerHTML.includes('प्रिंट');
 
         console.log(
-          `[Poll] largeImgCount=${largeImageCount} | resultBtn=${hasResultButton} | htmlLen=${finalHTML.length} | captchaErr=${hasCaptchaError} | elapsed=${elapsed}s`
+          `[Poll] largeImgCount=${largeImageCount} | resultBtn=${hasResultButton} | ` +
+          `htmlLen=${finalHTML.length} | captchaErr=${hasCaptchaError} | elapsed=${elapsed}s`
         );
 
-        const isRealResult = 
+        const isRealResult =
           largeImageCount >= 1 &&
           hasResultButton &&
           finalHTML.length > 650000 &&
           !hasCaptchaError;
 
         if (isRealResult) {
-          console.log(' Result page loaded successfully! (Image-based 7/12 result detected)');
+          console.log('Result page loaded successfully! (Image-based 7/12 result detected)');
           successDetected = true;
 
-          // Capture the main result image cleanly
-          await this.captureMainResultImage(page, fullSurveyInput);
+          // ── Capture PNG and get back its absolute path ─────────────────
+          mainImagePath = await this.captureMainResultImage(page, fullSurveyInput);
 
           break;
         }
@@ -156,21 +180,31 @@ class MahabhulekhScraper {
         }
       }
 
+      // ── Return ─────────────────────────────────────────────────────────────
       return {
-        verified: successDetected,
-        surveyLabel: match?.label || fullSurveyInput,
-        html: finalHTML,
-        retry: !successDetected,
-        reason: successDetected ? null : "Result not detected within timeout",
+        verified:      successDetected,
+        surveyLabel:   match?.label || fullSurveyInput,
+        html:          finalHTML,
+        pdfBuffer:     null,
+
+        // Image-based fields — controller checks these to route OCR path
+        imageBased:    successDetected && mainImagePath !== null,
+        mainImagePath: mainImagePath,
+
+        retry:  !successDetected,
+        reason: successDetected ? null : 'Result not detected within timeout',
       };
 
     } catch (err) {
-      console.error('ERROR:', err.message);
+      console.error('Scraper ERROR:', err.message);
       return {
-        verified: false,
-        reason: err.message,
-        html: finalHTML || '',
-        retry: true,
+        verified:      false,
+        reason:        err.message,
+        html:          finalHTML || '',
+        pdfBuffer:     null,
+        imageBased:    false,
+        mainImagePath: null,
+        retry:         true,
       };
     } finally {
       if (browser) {
@@ -179,69 +213,87 @@ class MahabhulekhScraper {
     }
   }
 
-  // ==================== Capture Main Result Image (Fixed) ====================
+  // ── captureMainResultImage ────────────────────────────────────────────────
+  /**
+   * Captures the largest result image on the page and saves it to IMAGE_SAVE_DIR.
+   *
+   * @param {import('puppeteer').Page} page
+   * @param {string} fullSurveyInput
+   * @returns {Promise<string|null>} Absolute path to the saved PNG, or null on failure.
+   */
   async captureMainResultImage(page, fullSurveyInput) {
+    const safeSurvey = fullSurveyInput.replace(/[^a-zA-Z0-9]/g, '_');
+
     try {
       console.log('Capturing main 7/12 result image...');
-
-      await delay(1500); // wait for image to fully render
+      await delay(1500); // let image fully render
 
       const imageHandle = await page.evaluateHandle(() => {
         const images = Array.from(document.querySelectorAll('img'));
-
-        // Get the largest image that is likely the result
-        let best = null;
+        let best    = null;
         let maxArea = 0;
 
         for (const img of images) {
-          const w = img.naturalWidth || img.clientWidth || 0;
-          const h = img.naturalHeight || img.clientHeight || 0;
+          const w    = img.naturalWidth  || img.clientWidth  || 0;
+          const h    = img.naturalHeight || img.clientHeight || 0;
           const area = w * h;
-
           if (area > maxArea && w > 600 && h > 300) {
             maxArea = area;
-            best = img;
+            best    = img;
           }
         }
         return best;
       });
 
-      if (imageHandle) {
-        const filename = `land_record_main_${fullSurveyInput.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.png`;
+      if (imageHandle && (await imageHandle.asElement())) {
+        const filename     = `land_record_main_${safeSurvey}_${Date.now()}.png`;
+        const absolutePath = path.resolve(IMAGE_SAVE_DIR, filename);
 
         await imageHandle.screenshot({
-          path: filename,
-          type: 'png',
-          omitBackground: true
+          path:            absolutePath,
+          type:            'png',
+          omitBackground:  true,
         });
 
-        console.log(` Main result image saved: ${filename}`);
-      } else {
-        console.log('Could not find main image, saving full page as fallback...');
-        const fallbackName = `land_record_full_${fullSurveyInput.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.png`;
-        await page.screenshot({ fullPage: true, path: fallbackName, type: 'png' });
-        console.log(`Fallback saved: ${fallbackName}`);
+        console.log(`Main result image saved: ${absolutePath}`);
+        return absolutePath; // ← returned to caller
       }
+
+      // Fallback: full-page screenshot
+      console.log('Could not isolate main image — saving full page as fallback.');
+      return await this._saveFullPageFallback(page, safeSurvey);
+
     } catch (e) {
       console.log('Image capture error:', e.message);
-      // Final fallback
       try {
-        const fallbackName = `land_record_full_${fullSurveyInput.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.png`;
-        await page.screenshot({ fullPage: true, path: fallbackName });
-        console.log(`Fallback saved: ${fallbackName}`);
-      } catch (_) {}
+        return await this._saveFullPageFallback(page, safeSurvey);
+      } catch (_) {
+        return null;
+      }
     }
   }
 
+  /**
+   * Full-page screenshot fallback.
+   * @returns {Promise<string>} Absolute path to saved PNG.
+   */
+  async _saveFullPageFallback(page, safeSurvey) {
+    const filename     = `land_record_full_${safeSurvey}_${Date.now()}.png`;
+    const absolutePath = path.resolve(IMAGE_SAVE_DIR, filename);
+    await page.screenshot({ fullPage: true, path: absolutePath, type: 'png' });
+    console.log(`Fallback full-page screenshot saved: ${absolutePath}`);
+    return absolutePath;
+  }
+
+  // ── getLargeImageCount ────────────────────────────────────────────────────
   async getLargeImageCount(page) {
     let count = 0;
     for (const f of page.frames()) {
       try {
-        const found = await f.evaluate(() => 
-          Array.from(document.querySelectorAll('img')).filter(img => {
-            const w = img.naturalWidth || img.clientWidth || 0;
-            return w > 600;
-          }).length
+        const found = await f.evaluate(() =>
+          Array.from(document.querySelectorAll('img'))
+            .filter(img => (img.naturalWidth || img.clientWidth || 0) > 600)
+            .length
         );
         count += found;
       } catch (_) {}
@@ -249,6 +301,7 @@ class MahabhulekhScraper {
     return count;
   }
 
+  // ── setSelectValue ────────────────────────────────────────────────────────
   async setSelectValue(frame, id, value) {
     return frame.evaluate((id, val) => {
       const el = document.getElementById(id);
@@ -260,6 +313,7 @@ class MahabhulekhScraper {
     }, id, value);
   }
 
+  // ── findFrameWithElement ──────────────────────────────────────────────────
   async findFrameWithElement(page, selector, timeout = 40000) {
     const start = Date.now();
     while (Date.now() - start < timeout) {
@@ -268,7 +322,7 @@ class MahabhulekhScraper {
       }
       await delay(500);
     }
-    throw new Error(`Element ${selector} not found in any frame`);
+    throw new Error(`Element ${selector} not found in any frame within ${timeout}ms`);
   }
 }
 

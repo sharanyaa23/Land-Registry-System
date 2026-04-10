@@ -1,105 +1,225 @@
+// src/services/mahabhulekh/compare.service.js
+
 const { fuzzyMatch } = require('../../utils/fuzzyMatch');
-const { convert } = require('../../utils/areaConvert');
 const logger = require('../../utils/logger');
 
 class CompareService {
-  /**
-   * Compare user-entered data against OCR-extracted data.
-   * Returns per-field scores and an overall verdict.
-   *
-   * @param {Object} userInput - { ownerName, surveyNumber, area, areaUnit }
-   * @param {Object} ocrExtracted - { ownerName, surveyNumber, area, areaUnit }
-   * @param {Object} options - { nameThreshold, areaTolerancePercent }
-   * @returns {Object} comparison result with verdict
-   */
-  compare(userInput, ocrExtracted, options = {}) {
-    const {
-      nameThreshold = 0.8,
-      surveyThreshold = 0.9,
-      areaTolerancePercent = 0.05
-    } = options;
+
+  // ─────────────────────────────────────────────
+  // NORMALIZATION (CRITICAL FIX)
+  // ─────────────────────────────────────────────
+  normalizeName(name) {
+    return (name || '')
+      .replace(/\u200B|\u200C|\u200D/g, '') // zero-width chars
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // ─────────────────────────────────────────────
+  // HARD MATCH (EXACT IDENTITY MATCH)
+  // ─────────────────────────────────────────────
+  hardMatch(a, b) {
+    return this.normalizeName(a) === this.normalizeName(b);
+  }
+
+  // ─────────────────────────────────────────────
+  // SAFE BEST MATCH (FIXED Fuzzy + Exact priority)
+  // ─────────────────────────────────────────────
+  safeBestMatch(userName, list) {
+    const nUser = this.normalizeName(userName);
+
+    let best = { match: '', score: 0 };
+
+    for (const item of list) {
+      const nItem = this.normalizeName(item);
+
+      // 🔥 EXACT MATCH FIRST (CRITICAL FIX)
+      if (nUser === nItem) {
+        return { match: item, score: 1 };
+      }
+
+      const score = fuzzyMatch(nUser, nItem);
+
+      if (score > best.score) {
+        best = { match: item, score };
+      }
+    }
+
+    return best;
+  }
+
+  // ─────────────────────────────────────────────
+  // MAIN COMPARE FUNCTION
+  // ─────────────────────────────────────────────
+  compare(userInput, parsed) {
 
     const result = {
-      nameMatch: { score: 0, passed: false },
+      nameMatch: { score: 0, passed: false, details: [] },
       surveyMatch: { score: 0, passed: false },
-      areaMatch: { score: 0, passed: false, tolerance: areaTolerancePercent },
+      areaMatch: { score: 0, passed: false },
       encumbranceFlag: false,
       overallScore: 0,
-      verdict: 'officer_review'
+      verdict: 'officer_review',
+      extraOwners: [],
+      missingOwners: []
     };
 
-    // --- Name comparison ---
-    if (userInput.ownerName && ocrExtracted.ownerName) {
-      result.nameMatch.score = fuzzyMatch(userInput.ownerName, ocrExtracted.ownerName);
-      result.nameMatch.passed = result.nameMatch.score >= nameThreshold;
-    }
+    // ─────────────────────────────────────────────
+    // 1. NAME MATCH (FIXED SET-BASED LOGIC)
+    // ─────────────────────────────────────────────
+    if (userInput.ownerName && parsed.owners?.length > 0) {
 
-    // --- Survey number comparison ---
-    if (userInput.surveyNumber && ocrExtracted.surveyNumber) {
-      // Normalize survey numbers: remove spaces, lowercase
-      const userSurvey = userInput.surveyNumber.replace(/\s/g, '').toLowerCase();
-      const ocrSurvey = ocrExtracted.surveyNumber.replace(/\s/g, '').toLowerCase();
+      const userNames = userInput.ownerName
+        .split(',')
+        .map(n => this.normalizeName(n))
+        .filter(Boolean);
 
-      if (userSurvey === ocrSurvey) {
-        result.surveyMatch.score = 1;
-        result.surveyMatch.passed = true;
-      } else {
-        result.surveyMatch.score = fuzzyMatch(userSurvey, ocrSurvey);
-        result.surveyMatch.passed = result.surveyMatch.score >= surveyThreshold;
+      const ocrOwners = parsed.owners.map(n => this.normalizeName(n));
+
+      // ── Forward match (user → OCR) ──
+      const forwardMatches = userNames.map(u => {
+        const m = this.safeBestMatch(u, ocrOwners);
+        return {
+          userName: u,
+          bestMatch: m.match,
+          score: m.score
+        };
+      });
+
+      const forwardScore =
+        forwardMatches.reduce((a, b) => a + b.score, 0) /
+        Math.max(forwardMatches.length, 1);
+
+      // ── Reverse match (OCR → user) ──
+      const reverseMatches = ocrOwners.map(o => {
+        const m = this.safeBestMatch(o, userNames);
+        return {
+          ocrName: o,
+          bestMatch: m.match,
+          score: m.score
+        };
+      });
+
+      const reverseScore =
+        reverseMatches.reduce((a, b) => a + b.score, 0) /
+        Math.max(reverseMatches.length, 1);
+
+      // ── FINAL BALANCED SCORE ──
+      result.nameMatch.score =
+        (forwardScore * 0.7) + (reverseScore * 0.3);
+
+      result.nameMatch.passed = result.nameMatch.score >= 0.8;
+
+      result.nameMatch.details = forwardMatches;
+
+      // ── EXTRA OWNERS DETECTION ──
+      result.extraOwners = ocrOwners.filter(o =>
+        !userNames.some(u => this.hardMatch(u, o))
+      );
+
+      // ── MISSING OWNERS DETECTION ──
+      result.missingOwners = userNames.filter(u =>
+        !ocrOwners.some(o => this.hardMatch(u, o))
+      );
+
+      // ── FAST PATH: PERFECT MATCH OVERRIDE ──
+      const allExact =
+        userNames.every(u =>
+          ocrOwners.some(o => this.hardMatch(u, o))
+        );
+
+      if (allExact) {
+        result.nameMatch.score = 1;
+        result.nameMatch.passed = true;
+        result.extraOwners = [];
+        result.missingOwners = [];
       }
     }
 
-    // --- Area comparison ---
-    if (userInput.area && ocrExtracted.area) {
-      // Convert both to sqm for comparison
-      const userUnit = userInput.areaUnit || 'sqm';
-      const ocrUnit = ocrExtracted.areaUnit || 'sqm';
+    // ─────────────────────────────────────────────
+    // 2. SURVEY MATCH
+    // ─────────────────────────────────────────────
+    if (userInput.fullSurveyInput && parsed.surveyNumber) {
+      const userSurvey = userInput.fullSurveyInput
+        .replace(/\s/g, '')
+        .toLowerCase();
 
-      const userAreaSqm = convert(userInput.area, userUnit, 'sqm');
-      const ocrAreaSqm = convert(ocrExtracted.area, ocrUnit, 'sqm');
+      const parsedSurvey = parsed.surveyNumber
+        .replace(/\s/g, '')
+        .toLowerCase();
 
-      if (userAreaSqm > 0 && ocrAreaSqm > 0) {
-        const diff = Math.abs(userAreaSqm - ocrAreaSqm);
-        const tolerance = userAreaSqm * areaTolerancePercent;
+      result.surveyMatch.score = fuzzyMatch(userSurvey, parsedSurvey);
+      result.surveyMatch.passed = result.surveyMatch.score >= 0.85;
+    }
 
-        result.areaMatch.passed = diff <= tolerance;
+    // ─────────────────────────────────────────────
+    // 3. AREA MATCH
+    // ─────────────────────────────────────────────
+    if (userInput.area && parsed.area) {
+      const userArea = parseFloat(userInput.area);
+      const parsedArea = parseFloat(parsed.area);
+
+      if (userArea > 0 && parsedArea > 0) {
+        const diff = Math.abs(userArea - parsedArea);
+
+        result.areaMatch.passed = diff <= userArea * 0.1;
+
         result.areaMatch.score = result.areaMatch.passed
           ? 1
-          : Math.max(0, 1 - (diff / userAreaSqm));
+          : Math.max(0, 1 - (diff / userArea));
       }
     }
 
-    // --- Encumbrance flag ---
-    if (ocrExtracted.encumbrances) {
-      const encText = ocrExtracted.encumbrances.toLowerCase();
-      result.encumbranceFlag = /loan|lien|mortgage|बोजा|कर्ज|गहाण/.test(encText);
+    // ─────────────────────────────────────────────
+    // 4. ENCUMBRANCE CHECK
+    // ─────────────────────────────────────────────
+    if (parsed.encumbrances) {
+      result.encumbranceFlag =
+        /बोजा|कर्ज|गहाण|भार|lien|loan/i.test(parsed.encumbrances) &&
+        !/नाही|फेरफार\s*नाही/i.test(parsed.encumbrances);
     }
 
-    // --- Overall score and verdict ---
-    const weights = { name: 0.4, survey: 0.3, area: 0.3 };
+    // ─────────────────────────────────────────────
+    // 5. OVERALL SCORE
+    // ─────────────────────────────────────────────
     result.overallScore =
-      (result.nameMatch.score * weights.name) +
-      (result.surveyMatch.score * weights.survey) +
-      (result.areaMatch.score * weights.area);
+      (result.nameMatch.score * 0.45) +
+      (result.surveyMatch.score * 0.35) +
+      (result.areaMatch.score * 0.20);
 
-    // Round to 4 decimal places
-    result.overallScore = Math.round(result.overallScore * 10000) / 10000;
-    result.nameMatch.score = Math.round(result.nameMatch.score * 10000) / 10000;
-    result.surveyMatch.score = Math.round(result.surveyMatch.score * 10000) / 10000;
-    result.areaMatch.score = Math.round(result.areaMatch.score * 10000) / 10000;
+    result.overallScore =
+      Math.round(result.overallScore * 10000) / 10000;
 
-    // Determine verdict
-    if (result.nameMatch.passed && result.surveyMatch.passed && result.areaMatch.passed && !result.encumbranceFlag) {
+    // ─────────────────────────────────────────────
+    // 6. VERDICT LOGIC
+    // ─────────────────────────────────────────────
+    if (
+      result.nameMatch.passed &&
+      result.surveyMatch.passed &&
+      result.areaMatch.passed &&
+      !result.encumbranceFlag
+    ) {
       result.verdict = 'auto_pass';
-    } else if (result.overallScore < 0.4) {
+    } else if (
+      result.overallScore < 0.4 ||
+      !result.surveyMatch.passed
+    ) {
       result.verdict = 'auto_fail';
     } else {
       result.verdict = 'officer_review';
     }
 
-    logger.info('Comparison complete', {
+    // ─────────────────────────────────────────────
+    // 7. LOGGING
+    // ─────────────────────────────────────────────
+    logger.info('Comparison completed', {
+      nameScore: result.nameMatch.score,
+      surveyScore: result.surveyMatch.score,
+      areaScore: result.areaMatch.score,
+      overall: result.overallScore,
       verdict: result.verdict,
-      overallScore: result.overallScore
+      extraOwners: result.extraOwners,
+      missingOwners: result.missingOwners
     });
 
     return result;
