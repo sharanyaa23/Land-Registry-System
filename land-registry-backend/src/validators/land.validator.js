@@ -2,6 +2,9 @@ const Joi = require('joi');
 
 // POST /land/register
 const registerLand = Joi.object({
+  ownerName: Joi.string().trim().required(),          // ← ADD
+  mobile: Joi.string().trim().allow('').default(''),  // ← ADD
+
   district: Joi.string().trim().required(),
   districtValue: Joi.string().trim().allow(''),
   taluka: Joi.string().trim().required(),
@@ -11,9 +14,19 @@ const registerLand = Joi.object({
   surveyNumber: Joi.string().trim().required(),
   gatNumber: Joi.string().trim().allow(''),
   area: Joi.number().positive().required(),
-  areaUnit: Joi.string().valid('sqm', 'hectare', 'acre', 'guntha').default('sqm'),
+  areaUnit: Joi.string().valid('sqm', 'hectare', 'acre', 'guntha').default('hectare'),
   encumbrances: Joi.string().allow('').default(''),
-  boundaryDescription: Joi.string().allow('').default('')
+  boundaryDescription: Joi.string().allow('').default(''),
+
+  coOwners: Joi.array().items(              // ← ADD
+    Joi.object({
+      fullName: Joi.string().trim().allow(''),
+      name: Joi.string().trim().allow(''),
+      sharePercent: Joi.number().min(0).max(100).default(0),
+      share: Joi.number().min(0).max(100).default(0),
+      walletAddress: Joi.string().trim().allow('', null).default(null),
+    })
+  ).default([]),
 });
 
 // PUT /land/:id

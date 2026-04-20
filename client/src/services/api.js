@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api/v1';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -33,6 +33,7 @@ export const authAPI = {
   getNonce:         (walletAddress) => api.post('/auth/nonce', { walletAddress }),
   verifySignature:  (data)          => api.post('/auth/verify', data),
   getMe:            ()              => api.get('/auth/me'),
+  updateRole:      (role)          => api.patch('/auth/role', { role }),
 };
 
 /* ── Profile ─────────────────────────────────────── */

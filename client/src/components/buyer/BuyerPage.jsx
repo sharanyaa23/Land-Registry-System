@@ -31,10 +31,20 @@ const BuyerPage = () => {
   const [selectedParcel, setSelectedParcel] = useState(null);
 
   const handleSearch = async () => {
+    console.log('Starting search with params:', searchForm);
     setSearchLoading(true);
-    try { const r = await landAPI.search(searchForm); setSearchResults(Array.isArray(r.data?.data || r.data) ? (r.data?.data || r.data) : []); }
-    catch { setSearchResults([]); }
-    finally { setSearchLoading(false); }
+    try {
+      const r = await landAPI.search(searchForm);
+      console.log('Search response:', r);
+      const results = Array.isArray(r.data?.data || r.data) ? (r.data?.data || r.data) : [];
+      console.log('Processed results:', results);
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Search failed:', error);
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
   };
 
   const { execute: createOffer, loading: offerLoading } = useMutation(useCallback((d) => transferAPI.createOffer(d), []));

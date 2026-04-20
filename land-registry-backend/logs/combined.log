@@ -501,3 +501,1212 @@
 {"area":5.6,"districtName":"अकोला","level":"info","message":"Parsing completed","owners":["प्रकाश जनार्धन नागवंशी","जगन्नाथ भानुदास शिरसाट"],"ownersFound":2,"service":"land-registry","surveyNumber":"100/अ/1","talukaName":"अकोला","timestamp":"2026-04-10T12:49:07.625Z","villageName":"अकोला"}
 {"area":5.6,"level":"info","message":"Google Vision parsing completed","ownersFound":2,"service":"land-registry","surveyNumber":"100/अ/1","timestamp":"2026-04-10T12:49:07.627Z"}
 {"areaMatch":true,"level":"info","message":"Verification complete","nameMatch":false,"parseSource":"ocr","score":0.7913,"service":"land-registry","timestamp":"2026-04-10T12:49:07.632Z","verdict":"officer_review"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T09:26:18.379Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T09:26:18.393Z"}
+{"level":"info","message":"SIWE signature verified","service":"land-registry","timestamp":"2026-04-20T09:26:29.655Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"level":"info","message":"New user created","role":"buyer","service":"land-registry","timestamp":"2026-04-20T09:26:30.033Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"isNew":true,"level":"info","message":"User authenticated","role":"buyer","service":"land-registry","timestamp":"2026-04-20T09:26:30.334Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T09:47:18.678Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T09:47:18.688Z"}
+{"level":"info","message":"SIWE signature verified","service":"land-registry","timestamp":"2026-04-20T09:53:28.000Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"level":"info","message":"New user created","role":"buyer","service":"land-registry","timestamp":"2026-04-20T09:53:28.135Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"isNew":true,"level":"info","message":"User authenticated","role":"buyer","service":"land-registry","timestamp":"2026-04-20T09:53:28.185Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"ip":"::1","level":"error","message":"generateToken is not defined","method":"PATCH","service":"land-registry","stack":"ReferenceError: generateToken is not defined\n    at C:\\Users\\nikit\\Downloads\\Land-Registry-System\\Land-Registry-System\\land-registry-backend\\src\\controllers\\auth.controller.js:168:17\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2026-04-20T09:53:44.921Z","url":"/api/v1/auth/role","userId":"69e5f798258a41b7fb8f09e9"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T10:05:28.704Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T10:05:28.710Z"}
+{"landId":"69e5fa9b7fb6b7b4c39c8c34","level":"info","message":"Land registered","service":"land-registry","survey":"102/A","timestamp":"2026-04-20T10:06:19.872Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T10:10:44.274Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T10:10:44.284Z"}
+{"landId":"69e5fbd19e43922c04ab27f4","level":"info","message":"Land registered","service":"land-registry","survey":"102/A","timestamp":"2026-04-20T10:11:30.136Z"}
+{"level":"info","message":"SIWE signature verified","service":"land-registry","timestamp":"2026-04-20T10:13:42.601Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"level":"info","message":"New user created","role":"buyer","service":"land-registry","timestamp":"2026-04-20T10:13:42.769Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"isNew":true,"level":"info","message":"User authenticated","role":"buyer","service":"land-registry","timestamp":"2026-04-20T10:13:42.935Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"level":"info","message":"SIWE signature verified","service":"land-registry","timestamp":"2026-04-20T10:15:08.246Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"level":"info","message":"New user created","role":"seller","service":"land-registry","timestamp":"2026-04-20T10:15:08.389Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"isNew":true,"level":"info","message":"User authenticated","role":"seller","service":"land-registry","timestamp":"2026-04-20T10:15:08.449Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"landId":"69e5fcd69e43922c04ab27f8","level":"info","message":"Land registered","service":"land-registry","survey":"102/A","timestamp":"2026-04-20T10:15:50.971Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T10:27:35.317Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Bhuvan WFS fallback failed","service":"land-registry","timestamp":"2026-04-20T10:27:45.369Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T10:27:45.372Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T10:27:47.936Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T10:27:48.480Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T10:27:48.496Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T10:27:48.557Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T10:27:52.755Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T10:27:57.611Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T10:27:58.178Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Bhuvan WFS fallback failed","service":"land-registry","timestamp":"2026-04-20T10:27:58.499Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T10:27:58.500Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:27:10.382Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Bhuvan WFS fallback failed","service":"land-registry","timestamp":"2026-04-20T11:27:20.401Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:27:20.402Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:27:24.227Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:27:24.250Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:27:24.276Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:27:29.882Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:27:32.705Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Bhuvan WFS fallback failed","service":"land-registry","timestamp":"2026-04-20T11:27:34.251Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:27:34.254Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:27:58.488Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:28:04.207Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:28:07.875Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:28:12.732Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:28:12.747Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:28:12.888Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:28:14.606Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:28:18.103Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:28:21.299Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:28:22.134Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:28:33.106Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:28:42.720Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:28:45.949Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:28:49.365Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:28:49.385Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:28:49.396Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:28:52.344Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:28:54.294Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:28:54.564Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:28:54.636Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:28:57.983Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:28:58.835Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:00.084Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:01.066Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:01.078Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:01.082Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:02.159Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:02.262Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:02.561Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:02.904Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:03.723Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:03.955Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:05.944Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:10.793Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:25.679Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:27.573Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:27.646Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:27.993Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:27.999Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:28.094Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:28.981Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:29.200Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:29.202Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:29.213Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:29.215Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:29.217Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:29.234Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:29.322Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:29.328Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:29.333Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:29.441Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:29.512Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:29.647Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:29.790Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:29.854Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:29.893Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:29.961Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:30.001Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:30.075Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:30.195Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:30.250Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:30.293Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:30.348Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:30.394Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:30.475Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:30.586Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:30.688Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:30.792Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:30.882Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:30.983Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:31.080Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:31.204Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:31.390Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:31.494Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:31.580Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:31.690Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:31.769Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:31.884Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:31.989Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:32.090Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:32.184Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:32.291Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:32.387Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:32.500Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:32.619Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:32.729Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:33.235Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:33.625Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:34.653Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:35.164Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:36.229Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:36.743Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:37.978Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:38.479Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:39.759Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:40.317Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:41.622Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:42.230Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:43.529Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:44.109Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:45.315Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:45.913Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:47.235Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:47.728Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:48.075Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:48.183Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:48.444Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:48.452Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:48.470Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:48.568Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:48.594Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:48.658Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:48.932Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:49.147Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:49.152Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:49.643Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:49.942Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:49.954Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:50.552Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:50.753Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:50.785Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:50.800Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:50.805Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:51.069Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:51.230Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:51.281Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:51.369Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:52.175Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:52.202Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:52.334Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:52.463Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:52.502Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:52.681Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:52.857Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:52.863Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:53.459Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:53.676Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:54.975Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:54.980Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:55.049Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:55.521Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:55.532Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:56.819Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:56.831Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:57.345Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:58.013Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:58.025Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:29:58.034Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:59.719Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:29:59.811Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:00.087Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:00.136Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:00.495Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:00.547Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:01.578Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:02.115Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:02.960Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:03.054Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:03.847Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:06.895Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:08.115Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:10.446Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:11.630Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:13.095Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:13.718Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:15.334Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:16.472Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:16.933Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:18.019Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:18.023Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:19.722Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:20.161Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:20.952Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:22.779Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:23.621Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:24.165Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:24.439Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:26.359Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:26.878Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:27.802Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:28.279Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:29.078Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:29.534Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:29.860Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:30.563Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:30.949Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:31.450Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:33.041Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:33.168Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:33.503Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:33.585Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:33.794Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:33.883Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:34.087Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:34.194Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:34.410Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:35.344Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:35.996Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:37.449Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:38.173Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:39.668Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:40.432Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:42.053Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:42.148Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:42.890Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:43.594Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:43.601Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:44.339Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:44.618Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:44.699Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:45.360Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:45.518Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:46.029Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:46.034Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:47.012Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:30:47.562Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:51.494Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Bhuvan WFS fallback failed","service":"land-registry","timestamp":"2026-04-20T11:30:54.717Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:54.718Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Bhuvan WFS fallback failed","service":"land-registry","timestamp":"2026-04-20T11:30:56.036Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:56.037Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Bhuvan WFS fallback failed","service":"land-registry","timestamp":"2026-04-20T11:30:56.040Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:56.041Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Bhuvan WFS fallback failed","service":"land-registry","timestamp":"2026-04-20T11:30:57.030Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:57.031Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Bhuvan WFS fallback failed","service":"land-registry","timestamp":"2026-04-20T11:30:57.589Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:30:57.590Z"}
+{"ip":"::1","level":"error","message":"getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net","method":"GET","service":"land-registry","stack":"MongoNetworkError: getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net\n    at TLSSocket.<anonymous> (C:\\Users\\nikit\\Downloads\\Land-Registry-System\\Land-Registry-System\\land-registry-backend\\node_modules\\mongodb\\lib\\cmap\\connect.js:313:44)\n    at Object.onceWrapper (node:events:639:26)\n    at TLSSocket.emit (node:events:524:28)\n    at emitErrorNT (node:internal/streams/destroy:169:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)","timestamp":"2026-04-20T11:30:58.491Z","url":"/api/v1/spatial/plot-boundary?landId=69e5fcd69e43922c04ab27f8&lat=18.5362&lng=73.9167","userId":null}
+{"ip":"::1","level":"error","message":"getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net","method":"GET","service":"land-registry","stack":"MongoNetworkError: getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net\n    at TLSSocket.<anonymous> (C:\\Users\\nikit\\Downloads\\Land-Registry-System\\Land-Registry-System\\land-registry-backend\\node_modules\\mongodb\\lib\\cmap\\connect.js:313:44)\n    at Object.onceWrapper (node:events:639:26)\n    at TLSSocket.emit (node:events:524:28)\n    at emitErrorNT (node:internal/streams/destroy:169:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)","timestamp":"2026-04-20T11:30:58.501Z","url":"/api/v1/spatial/plot-boundary?landId=69e5fcd69e43922c04ab27f8&lat=18.5362&lng=73.9167","userId":null}
+{"ip":"::1","level":"error","message":"getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net","method":"GET","service":"land-registry","stack":"MongoNetworkError: getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net\n    at TLSSocket.<anonymous> (C:\\Users\\nikit\\Downloads\\Land-Registry-System\\Land-Registry-System\\land-registry-backend\\node_modules\\mongodb\\lib\\cmap\\connect.js:313:44)\n    at Object.onceWrapper (node:events:639:26)\n    at TLSSocket.emit (node:events:524:28)\n    at emitErrorNT (node:internal/streams/destroy:169:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)","timestamp":"2026-04-20T11:30:58.503Z","url":"/api/v1/spatial/plot-boundary?landId=69e5fcd69e43922c04ab27f8&lat=18.5362&lng=73.9167","userId":null}
+{"ip":"::1","level":"error","message":"getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net","method":"GET","service":"land-registry","stack":"MongoNetworkError: getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net\n    at TLSSocket.<anonymous> (C:\\Users\\nikit\\Downloads\\Land-Registry-System\\Land-Registry-System\\land-registry-backend\\node_modules\\mongodb\\lib\\cmap\\connect.js:313:44)\n    at Object.onceWrapper (node:events:639:26)\n    at TLSSocket.emit (node:events:524:28)\n    at emitErrorNT (node:internal/streams/destroy:169:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)","timestamp":"2026-04-20T11:30:58.516Z","url":"/api/v1/spatial/plot-boundary?landId=69e5fcd69e43922c04ab27f8&lat=18.5362&lng=73.9167","userId":null}
+{"ip":"::1","level":"error","message":"getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net","method":"GET","service":"land-registry","stack":"MongoNetworkError: getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net\n    at TLSSocket.<anonymous> (C:\\Users\\nikit\\Downloads\\Land-Registry-System\\Land-Registry-System\\land-registry-backend\\node_modules\\mongodb\\lib\\cmap\\connect.js:313:44)\n    at Object.onceWrapper (node:events:639:26)\n    at TLSSocket.emit (node:events:524:28)\n    at emitErrorNT (node:internal/streams/destroy:169:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)","timestamp":"2026-04-20T11:30:58.519Z","url":"/api/v1/spatial/plot-boundary?landId=69e5fcd69e43922c04ab27f8&lat=18.5362&lng=73.9167","userId":null}
+{"ip":"::1","level":"error","message":"getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net","method":"GET","service":"land-registry","stack":"MongoNetworkError: getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net\n    at TLSSocket.<anonymous> (C:\\Users\\nikit\\Downloads\\Land-Registry-System\\Land-Registry-System\\land-registry-backend\\node_modules\\mongodb\\lib\\cmap\\connect.js:313:44)\n    at Object.onceWrapper (node:events:639:26)\n    at TLSSocket.emit (node:events:524:28)\n    at emitErrorNT (node:internal/streams/destroy:169:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)","timestamp":"2026-04-20T11:30:58.530Z","url":"/api/v1/spatial/plot-boundary?landId=69e5fcd69e43922c04ab27f8&lat=18.5362&lng=73.9167","userId":null}
+{"ip":"::1","level":"error","message":"getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net","method":"GET","service":"land-registry","stack":"MongoNetworkError: getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net\n    at TLSSocket.<anonymous> (C:\\Users\\nikit\\Downloads\\Land-Registry-System\\Land-Registry-System\\land-registry-backend\\node_modules\\mongodb\\lib\\cmap\\connect.js:313:44)\n    at Object.onceWrapper (node:events:639:26)\n    at TLSSocket.emit (node:events:524:28)\n    at emitErrorNT (node:internal/streams/destroy:169:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)","timestamp":"2026-04-20T11:30:58.531Z","url":"/api/v1/spatial/plot-boundary?landId=69e5fcd69e43922c04ab27f8&lat=18.5362&lng=73.9167","userId":null}
+{"ip":"::1","level":"error","message":"getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net","method":"GET","service":"land-registry","stack":"MongoNetworkError: getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net\n    at TLSSocket.<anonymous> (C:\\Users\\nikit\\Downloads\\Land-Registry-System\\Land-Registry-System\\land-registry-backend\\node_modules\\mongodb\\lib\\cmap\\connect.js:313:44)\n    at Object.onceWrapper (node:events:639:26)\n    at TLSSocket.emit (node:events:524:28)\n    at emitErrorNT (node:internal/streams/destroy:169:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)","timestamp":"2026-04-20T11:30:58.539Z","url":"/api/v1/spatial/plot-boundary?landId=69e5fcd69e43922c04ab27f8&lat=18.5362&lng=73.9167","userId":null}
+{"ip":"::1","level":"error","message":"getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net","method":"GET","service":"land-registry","stack":"MongoNetworkError: getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net\n    at TLSSocket.<anonymous> (C:\\Users\\nikit\\Downloads\\Land-Registry-System\\Land-Registry-System\\land-registry-backend\\node_modules\\mongodb\\lib\\cmap\\connect.js:313:44)\n    at Object.onceWrapper (node:events:639:26)\n    at TLSSocket.emit (node:events:524:28)\n    at emitErrorNT (node:internal/streams/destroy:169:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)","timestamp":"2026-04-20T11:30:58.547Z","url":"/api/v1/spatial/plot-boundary?landId=69e5fcd69e43922c04ab27f8&lat=18.5362&lng=73.9167","userId":null}
+{"ip":"::1","level":"error","message":"getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net","method":"GET","service":"land-registry","stack":"MongoNetworkError: getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net\n    at TLSSocket.<anonymous> (C:\\Users\\nikit\\Downloads\\Land-Registry-System\\Land-Registry-System\\land-registry-backend\\node_modules\\mongodb\\lib\\cmap\\connect.js:313:44)\n    at Object.onceWrapper (node:events:639:26)\n    at TLSSocket.emit (node:events:524:28)\n    at emitErrorNT (node:internal/streams/destroy:169:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)","timestamp":"2026-04-20T11:30:58.557Z","url":"/api/v1/spatial/plot-boundary?landId=69e5fcd69e43922c04ab27f8&lat=18.5362&lng=73.9167","userId":null}
+{"ip":"::1","level":"error","message":"getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net","method":"GET","service":"land-registry","stack":"MongoNetworkError: getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net\n    at TLSSocket.<anonymous> (C:\\Users\\nikit\\Downloads\\Land-Registry-System\\Land-Registry-System\\land-registry-backend\\node_modules\\mongodb\\lib\\cmap\\connect.js:313:44)\n    at Object.onceWrapper (node:events:639:26)\n    at TLSSocket.emit (node:events:524:28)\n    at emitErrorNT (node:internal/streams/destroy:169:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)","timestamp":"2026-04-20T11:30:58.562Z","url":"/api/v1/spatial/plot-boundary?landId=69e5fcd69e43922c04ab27f8&lat=18.5362&lng=73.9167","userId":null}
+{"ip":"::1","level":"error","message":"getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net","method":"GET","service":"land-registry","stack":"MongoNetworkError: getaddrinfo ENOTFOUND ac-ymz5rlp-shard-00-02.r9bzwxp.mongodb.net\n    at TLSSocket.<anonymous> (C:\\Users\\nikit\\Downloads\\Land-Registry-System\\Land-Registry-System\\land-registry-backend\\node_modules\\mongodb\\lib\\cmap\\connect.js:313:44)\n    at Object.onceWrapper (node:events:639:26)\n    at TLSSocket.emit (node:events:524:28)\n    at emitErrorNT (node:internal/streams/destroy:169:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)","timestamp":"2026-04-20T11:30:58.568Z","url":"/api/v1/spatial/plot-boundary?landId=69e5fcd69e43922c04ab27f8&lat=18.5362&lng=73.9167","userId":null}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:31:17.206Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:31:17.729Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:31:17.791Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:31:17.979Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:31:18.452Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:31:18.493Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:31:19.111Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:31:19.119Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:31:19.333Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:31:19.349Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:31:19.718Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:31:20.145Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:31:23.562Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:31:23.881Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:31:24.842Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:31:25.111Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:31:28.814Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:31:29.185Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:36:30.176Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Bhuvan WFS fallback failed","service":"land-registry","timestamp":"2026-04-20T11:36:40.198Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:36:40.200Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:36:45.060Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:36:45.097Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:36:49.836Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T11:36:52.929Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Bhuvan WFS fallback failed","service":"land-registry","timestamp":"2026-04-20T11:36:55.078Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:36:55.078Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Bhuvan WFS fallback failed","service":"land-registry","timestamp":"2026-04-20T11:36:55.110Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:36:55.111Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Bhuvan WFS fallback failed","service":"land-registry","timestamp":"2026-04-20T11:36:59.856Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:36:59.857Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Bhuvan WFS fallback failed","service":"land-registry","timestamp":"2026-04-20T11:37:02.936Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T11:37:02.937Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T12:47:01.098Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T12:47:01.133Z"}
+{"district":"अकोला","landId":"69e6208b803976429692ce8a","level":"info","message":"Land registered — calling /verify","service":"land-registry","survey":"102/A","timestamp":"2026-04-20T12:48:12.055Z","village":"अकोला"}
+{"allOwnerNames":"","area":"2.45","landId":"69e6208b803976429692ce8a","level":"info","message":"Verify payload owner names","service":"land-registry","timestamp":"2026-04-20T12:48:12.057Z"}
+{"error":"axios is not defined","landId":"69e6208b803976429692ce8a","level":"error","message":"Error calling /api/land/verify during registration","service":"land-registry","timestamp":"2026-04-20T12:48:12.058Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:45.281Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:45.931Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:46.156Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:46.395Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:47.018Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:47.206Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:47.397Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:47.547Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:47.740Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:47.883Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:48.045Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:48.179Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:48.340Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:48.647Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:48.842Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:48.970Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:49.124Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:49.274Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:49.620Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:49.753Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:49.899Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:50.040Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:50.205Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:50.325Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:50.697Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:50.839Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:51.020Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:51.156Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:51.364Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:51.560Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:51.737Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:51.874Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:52.135Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:52.258Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:52.685Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:52.818Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:53.002Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:53.137Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:53.314Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:53.526Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:53.725Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:53.860Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:54.043Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:54.164Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:54.573Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:54.713Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:54.875Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:55.019Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:55.205Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:55.324Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:55.635Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:55.761Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:55.923Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:56.057Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:56.218Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:56.533Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:56.699Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:56.922Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:57.058Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:57.237Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:57.557Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:57.690Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:57.882Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:58.005Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:58.192Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:58.976Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:59.136Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:59.429Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:59.698Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:49:59.831Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:49:59.977Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:00.113Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:00.422Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:00.563Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:00.735Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:00.872Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:01.043Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:01.163Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:01.539Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:01.679Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:01.859Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:01.994Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:02.138Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:02.369Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:02.516Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:02.660Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:02.836Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:02.962Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:03.137Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:03.391Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:03.556Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:04.314Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:04.535Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:04.776Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:04.939Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:05.136Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:05.556Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:05.698Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:05.877Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:06.019Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:06.179Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:06.418Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:06.578Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:06.712Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:06.875Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:07.020Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:07.354Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:07.490Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:07.658Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:07.794Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:07.954Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:08.082Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:08.337Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:08.473Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:08.633Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:08.763Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:08.923Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:09.061Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:09.284Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:09.423Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:09.592Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:09.723Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:09.884Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:10.017Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:10.455Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:10.605Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:10.877Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:11.019Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:11.275Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:11.482Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:11.647Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:11.785Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:11.944Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:12.077Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:12.315Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:12.451Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:12.626Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:12.769Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:12.928Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:13.049Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:13.327Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:13.465Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:13.625Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:13.768Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:13.953Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:14.144Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:14.316Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:14.449Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:14.688Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:14.867Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:15.314Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:15.368Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:15.434Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:15.725Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:15.753Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:15.801Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:15.875Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:16.184Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:16.370Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:16.374Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:16.408Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:16.420Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:16.537Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:16.539Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:16.735Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:16.772Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:16.864Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:16.996Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:17.232Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:17.236Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:17.370Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:17.380Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:17.567Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:17.571Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:17.707Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:17.712Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:17.833Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:17.839Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:17.958Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:18.002Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:18.329Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:18.333Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:18.472Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:18.477Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:18.592Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:18.605Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:18.740Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:18.744Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:18.888Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:19.122Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:19.307Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:19.435Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:19.630Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:19.755Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:19.969Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:20.191Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T12:50:20.474Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T12:50:20.654Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:35.001Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:35.690Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:35.895Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:36.064Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:36.203Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:36.338Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:36.499Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:36.790Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:36.975Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:37.165Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:37.385Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:37.708Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:37.901Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:38.032Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:38.268Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:38.437Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:38.917Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:39.083Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:39.311Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:39.485Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:39.917Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:40.058Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:40.244Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:40.379Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:40.753Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:40.899Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:41.072Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:41.220Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:41.404Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:41.751Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:41.944Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:42.126Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:42.284Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:42.417Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:42.736Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:42.873Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:43.034Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:43.182Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:43.353Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:44.107Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:44.274Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:44.427Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:45.132Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:45.286Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:45.657Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:45.866Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:46.095Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:46.284Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:46.457Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:46.671Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:46.872Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:47.004Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:47.175Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:47.318Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:47.474Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:47.680Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:47.855Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:48.028Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:48.196Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:48.325Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:48.746Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:48.873Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:49.031Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:49.166Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:49.331Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:49.621Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:49.793Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:49.964Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:50.124Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:50.264Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:50.442Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:50.639Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:50.830Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:50.961Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:51.137Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:51.281Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:51.581Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:51.720Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:51.911Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:52.041Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:52.215Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:52.350Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:52.787Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:52.922Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:53.096Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:53.270Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:53.527Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:53.656Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:53.845Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:54.039Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:54.175Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:54.319Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:54.695Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:54.827Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:54.992Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:55.118Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:55.273Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:55.681Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:55.844Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:56.087Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:56.254Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:56.390Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:56.802Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:56.936Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:57.093Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:57.266Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:57.431Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:57.727Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:57.894Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:58.030Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:58.201Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:58.335Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:58.822Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:58.960Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:59.134Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:59.271Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:59.665Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:00:59.791Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:00:59.952Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:00.095Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:00.253Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:00.395Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:00.632Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:00.785Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:00.974Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:01.113Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:01.274Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:01.720Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:01.895Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:02.018Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:02.234Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:02.549Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:02.725Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:02.902Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:03.044Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:03.158Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:03.333Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:03.503Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:03.697Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:03.826Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:04.023Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:04.164Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:04.335Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:04.542Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:04.712Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:04.862Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:05.033Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:05.220Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:05.508Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:05.642Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:05.792Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:05.992Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:06.134Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:06.164Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:06.259Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:06.552Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:06.556Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:06.704Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:06.895Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:06.914Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:07.041Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:07.088Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:07.273Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:07.279Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:07.282Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:07.317Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:07.525Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:07.526Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:07.653Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:07.656Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:07.801Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:07.897Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:07.982Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:08.134Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:08.218Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:08.273Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:08.557Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:08.561Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:08.827Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:08.830Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:08.894Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:08.896Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:09.036Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:09.146Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:09.242Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:09.264Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:09.510Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:09.579Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:09.705Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:09.707Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:09.855Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:09.950Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:10.065Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:10.309Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:10.357Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T13:01:10.360Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:10.556Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T13:01:10.669Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T13:20:21.699Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T13:20:21.709Z"}
+{"error":"VERIFY_TIMEOUT_MS is not defined","landId":"69e628739f8fb5cfd080d22c","level":"error","message":"Verify API failed or timed out","service":"land-registry","timestamp":"2026-04-20T13:21:55.180Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T13:24:47.183Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T13:24:47.188Z"}
+{"landId":"69e6297979552241929e534b","level":"info","message":"Calling /verify API (Puppeteer)","ownerNamesCount":1,"service":"land-registry","timeoutMs":180000,"timestamp":"2026-04-20T13:26:26.433Z"}
+{"error":"axios is not defined","landId":"69e6297979552241929e534b","level":"error","message":"Verify API failed or timed out","service":"land-registry","timeoutUsed":180000,"timestamp":"2026-04-20T13:26:26.439Z"}
+{"error":"read ECONNRESET","level":"error","message":"Failed to connect to database","service":"land-registry","timestamp":"2026-04-20T13:32:54.597Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T13:33:39.784Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T13:33:39.789Z"}
+{"level":"info","message":"SIWE signature verified","service":"land-registry","timestamp":"2026-04-20T13:34:01.971Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"isNew":false,"level":"info","message":"User authenticated","role":"seller","service":"land-registry","timestamp":"2026-04-20T13:34:02.196Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"landId":"69e62b9a54b0b7fddcc48801","level":"info","message":"Calling /verify API (Puppeteer)","ownerNamesCount":1,"service":"land-registry","timeoutMs":180000,"timestamp":"2026-04-20T13:35:22.723Z"}
+{"error":"axios is not defined","landId":"69e62b9a54b0b7fddcc48801","level":"error","message":"Verify API failed or timed out","service":"land-registry","timeoutUsed":180000,"timestamp":"2026-04-20T13:35:22.724Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T13:44:05.520Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T13:44:05.524Z"}
+{"landId":"69e62de61956f0f573fb2793","level":"info","message":"Calling /verify API (Puppeteer)","ownerNamesCount":1,"service":"land-registry","timeoutMs":180000,"timestamp":"2026-04-20T13:45:10.613Z"}
+{"error":"Request failed with status code 404","isTimeout":false,"landId":"69e62de61956f0f573fb2793","level":"error","message":"Verify API failed or timed out","service":"land-registry","timestamp":"2026-04-20T13:45:10.666Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T13:47:35.366Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T13:47:35.374Z"}
+{"landId":"69e62ea9996ab778f60d5fab","level":"info","message":"Calling /verify API (Puppeteer)","ownerNamesCount":1,"service":"land-registry","timeoutMs":180000,"timestamp":"2026-04-20T13:48:25.834Z"}
+{"body":{"area":"2.45","district":"अकोला","districtValue":"05","fullSurveyInput":"102/A","landId":"69e62ea9996ab778f60d5fab","mobile":"","ownerName":"","taluka":"आकोला","talukaValue":"04","village":"अकोला","villageValue":"270500040051260000"},"level":"info","message":"Mahabhulekh verification started","service":"land-registry","timestamp":"2026-04-20T13:48:25.884Z"}
+{"error":"Request failed with status code 400","isTimeout":false,"landId":"69e62ea9996ab778f60d5fab","level":"error","message":"Verify API failed or timed out","service":"land-registry","timestamp":"2026-04-20T13:49:01.659Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T13:49:10.643Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T13:49:10.657Z"}
+{"landId":"69e62f1b4e1ea4dcf3b88833","level":"info","message":"Calling /verify API (Puppeteer)","ownerNamesCount":1,"service":"land-registry","timeoutMs":180000,"timestamp":"2026-04-20T13:50:19.392Z"}
+{"body":{"area":"2.45","district":"अकोला","districtValue":"05","fullSurveyInput":"102/A","landId":"69e62f1b4e1ea4dcf3b88833","mobile":"","ownerName":"","taluka":"आकोला","talukaValue":"04","village":"अकोला","villageValue":"270500040051260000"},"level":"info","message":"Mahabhulekh verification started","service":"land-registry","timestamp":"2026-04-20T13:50:19.443Z"}
+{"error":"Request failed with status code 400","isTimeout":false,"landId":"69e62f1b4e1ea4dcf3b88833","level":"error","message":"Verify API failed or timed out","service":"land-registry","timestamp":"2026-04-20T13:51:08.829Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T13:51:19.860Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T13:51:19.878Z"}
+{"landId":"69e62fa3670daa7180f5febc","level":"info","message":"Calling /verify API (Puppeteer)","ownerNamesCount":1,"service":"land-registry","timeoutMs":180000,"timestamp":"2026-04-20T13:52:35.562Z"}
+{"body":{"area":"2.45","district":"अकोला","districtValue":"05","fullSurveyInput":"102/A","landId":"69e62fa3670daa7180f5febc","mobile":"","ownerName":"","taluka":"आकोला","talukaValue":"04","village":"अकोला","villageValue":"270500040051260000"},"level":"info","message":"Mahabhulekh verification started","service":"land-registry","timestamp":"2026-04-20T13:52:35.591Z"}
+{"error":"Request failed with status code 400","isTimeout":false,"landId":"69e62fa3670daa7180f5febc","level":"error","message":"Verify API failed or timed out","service":"land-registry","timestamp":"2026-04-20T13:53:07.656Z"}
+{"body":{"area":"5.60","district":"अकोला","districtValue":"5","fullSurveyInput":"100/अ/1","mobile":"9999999999","ownerName":"प्रकाश जनार्धन नागवंशी, जगन्नाथ भानुदास शिरसाट","taluka":"अकोला","talukaValue":"4","village":"अकोला","villageValue":"270500040051260000"},"level":"info","message":"Mahabhulekh verification started","service":"land-registry","timestamp":"2026-04-20T13:53:39.936Z"}
+{"body":{"area":"5.60","district":"अकोला","districtValue":"5","fullSurveyInput":"100/अ/1","mobile":"9999999999","ownerName":"प्रकाश जनार्धन नागवंशी, जगन्नाथ भानुदास शिरसाट","taluka":"अकोला","talukaValue":"4","village":"अकोला","villageValue":"270500040051260000"},"level":"info","message":"Mahabhulekh verification started","service":"land-registry","timestamp":"2026-04-20T13:54:11.536Z"}
+{"level":"info","message":"Image-based 7/12 detected — using Google Vision API","service":"land-registry","timestamp":"2026-04-20T13:55:16.880Z"}
+{"ares":5.6,"level":"info","line":"5.60.00","message":"Area from बिन शेती panel","service":"land-registry","timestamp":"2026-04-20T13:55:19.150Z"}
+{"area":5.6,"districtName":"अकोला","level":"info","message":"Parsing completed","owners":["प्रकाश जनार्धन नागवंशी","जगन्नाथ भानुदास शिरसाट"],"ownersFound":2,"service":"land-registry","surveyNumber":"100/अ/1","talukaName":"अकोला","timestamp":"2026-04-20T13:55:19.153Z","villageName":"अकोला"}
+{"area":5.6,"level":"info","message":"Google Vision parsing completed","ownersFound":2,"service":"land-registry","surveyNumber":"100/अ/1","timestamp":"2026-04-20T13:55:19.154Z"}
+{"areaMatch":true,"level":"info","message":"Verification complete","nameMatch":false,"parseSource":"ocr","score":0.7913,"service":"land-registry","timestamp":"2026-04-20T13:55:19.158Z","verdict":"officer_review"}
+{"level":"warn","message":"Failed to pin image to IPFS","service":"land-registry","timestamp":"2026-04-20T13:55:26.411Z"}
+{"landId":"69e6308a670daa7180f5febe","level":"info","message":"Calling /verify API (Puppeteer)","ownerNamesCount":1,"service":"land-registry","timeoutMs":180000,"timestamp":"2026-04-20T13:56:26.528Z"}
+{"body":{"area":"2.45","district":"अकोला","districtValue":"05","fullSurveyInput":"102/A","landId":"69e6308a670daa7180f5febe","mobile":"","ownerName":"","taluka":"आकोला","talukaValue":"04","village":"अकोला","villageValue":"270500040051260000"},"level":"info","message":"Mahabhulekh verification started","service":"land-registry","timestamp":"2026-04-20T13:56:26.539Z"}
+{"error":"Request failed with status code 400","isTimeout":false,"landId":"69e6308a670daa7180f5febe","level":"error","message":"Verify API failed or timed out","service":"land-registry","timestamp":"2026-04-20T13:57:14.326Z"}
+{"landId":"69e630c3670daa7180f5fec0","level":"info","message":"Calling /verify API (Puppeteer)","ownerNamesCount":1,"service":"land-registry","timeoutMs":180000,"timestamp":"2026-04-20T13:57:23.344Z"}
+{"body":{"area":"2.45","district":"अकोला","districtValue":"05","fullSurveyInput":"102/A","landId":"69e630c3670daa7180f5fec0","mobile":"","ownerName":"","taluka":"आकोला","talukaValue":"04","village":"अकोला","villageValue":"270500040051260000"},"level":"info","message":"Mahabhulekh verification started","service":"land-registry","timestamp":"2026-04-20T13:57:23.355Z"}
+{"ip":"::1","level":"error","message":"timeoutMs is not defined","method":"POST","service":"land-registry","stack":"ReferenceError: timeoutMs is not defined\n    at C:\\Users\\nikit\\Downloads\\Land-Registry-System\\Land-Registry-System\\land-registry-backend\\src\\controllers\\land.controller.js:214:38\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2026-04-20T14:00:23.347Z","url":"/api/v1/land/register","userId":"69e5fcac9e43922c04ab27f7"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T14:05:58.090Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T14:05:58.095Z"}
+{"body":{"area":"2.45","district":"अकोला","districtValue":"5","fullSurveyInput":"102/A","landId":"69e632cf7643118fd2747648","mobile":"","ownerName":"","taluka":"आकोला","talukaValue":"4","village":"अकोला","villageValue":"270500040051260000"},"level":"info","message":"Mahabhulekh verification started","ownerNameSent":"EMPTY!","service":"land-registry","timestamp":"2026-04-20T14:06:07.555Z"}
+{"error":"VERIFY_TIMEOUT_MS is not defined","landId":"69e632cf7643118fd2747648","level":"error","message":"Verify API failed","service":"land-registry","timestamp":"2026-04-20T14:06:07.557Z"}
+{"body":{"area":"2.45","district":"अमरावती","districtValue":"7","fullSurveyInput":"102/A","landId":"69e633187643118fd274764a","mobile":"","ownerName":"","taluka":"अचलपुर","talukaValue":"4","village":"अंबुज","villageValue":"270700040070280000"},"level":"info","message":"Mahabhulekh verification started","ownerNameSent":"EMPTY!","service":"land-registry","timestamp":"2026-04-20T14:07:20.297Z"}
+{"error":"VERIFY_TIMEOUT_MS is not defined","landId":"69e633187643118fd274764a","level":"error","message":"Verify API failed","service":"land-registry","timestamp":"2026-04-20T14:07:20.300Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:42.033Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:43.917Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:44.093Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:44.253Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:44.423Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:44.594Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:44.943Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:45.042Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:45.224Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:45.324Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:45.492Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:45.597Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:45.833Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:45.967Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:46.185Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:46.307Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:46.516Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:46.959Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:47.142Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:47.241Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:47.432Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:47.542Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:48.073Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:48.181Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:48.340Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:48.444Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:48.693Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:48.807Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:48.954Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:49.086Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:49.259Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:49.367Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:49.512Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:49.700Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:49.883Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:50.006Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:50.183Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:50.281Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:50.475Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:50.580Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:50.823Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:50.925Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:51.091Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:51.202Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:51.381Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:51.483Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:51.994Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:52.107Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:52.294Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:52.403Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:52.681Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:52.784Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:52.956Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:53.078Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:53.236Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:53.356Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:53.915Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:54.024Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:54.196Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:54.315Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:54.501Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:54.698Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:54.875Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:54.987Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:55.154Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:55.296Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:55.475Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:55.636Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:55.821Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:55.968Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:56.134Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:56.253Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:56.436Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:56.541Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:56.794Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:56.935Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:57.121Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:57.237Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:57.423Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:57.528Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:57.781Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:57.883Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:58.067Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:58.192Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:58.382Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:58.490Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:58.736Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:58.843Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:59.039Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:59.147Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:59.347Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:59.446Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:07:59.697Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:07:59.807Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:00.040Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:00.170Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:00.360Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:00.471Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:00.699Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:00.811Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:01.002Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:01.120Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:01.320Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:01.443Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:01.819Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:01.920Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:02.121Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:02.372Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:02.901Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:03.198Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:03.778Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:04.880Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:05.065Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:05.170Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:05.319Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:05.434Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:05.704Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:05.809Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:05.989Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:06.091Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:06.258Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:06.409Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:06.657Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:06.767Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:06.938Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:07.093Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:07.266Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:07.370Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:07.731Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:07.853Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:08.057Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:08.163Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:08.353Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:08.492Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:08.738Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:08.849Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:09.019Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:09.129Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:09.307Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:09.419Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:09.817Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:09.930Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:10.098Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:10.211Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:10.377Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:10.660Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:10.859Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:10.969Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:11.138Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:11.249Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:11.545Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:11.600Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:11.648Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:11.719Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:11.739Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:11.805Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:12.046Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:12.095Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:12.134Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:12.136Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:12.267Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:12.288Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:12.505Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:12.519Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:12.607Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:12.634Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:12.737Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:12.741Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:12.841Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:12.843Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:13.030Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:13.098Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:13.149Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:13.206Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T14:08:17.851Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T14:08:17.856Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:18.889Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:18.985Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:19.259Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:19.282Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:19.323Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:19.642Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:19.648Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:19.816Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:19.999Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:20.107Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:20.308Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:20.521Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:20.565Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:20.640Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:20.660Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:20.669Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:20.766Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:20.785Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:20.959Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:21.003Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:21.086Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:21.110Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:21.320Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:21.325Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:21.510Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:21.536Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:21.605Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:21.656Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:21.724Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:21.763Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:22.002Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:22.007Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:22.105Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:22.123Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:22.265Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:22.268Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:22.503Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:22.513Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:22.619Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:22.624Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:22.727Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:22.738Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:22.898Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:23.008Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:23.058Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:23.169Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:23.667Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:23.745Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:23.773Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:23.800Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:23.806Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:23.843Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:23.921Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:24.050Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:24.082Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:24.088Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:24.251Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:24.291Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:24.300Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:24.418Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:24.485Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:24.534Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:24.639Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:24.643Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:24.765Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:24.767Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:24.963Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:25.086Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:25.119Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:25.228Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:25.469Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:25.523Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:25.583Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:25.701Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:25.857Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:25.867Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:25.966Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:25.974Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:26.122Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:26.187Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:26.261Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:26.381Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:26.528Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:26.535Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:26.541Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:26.550Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:26.655Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:26.656Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:26.670Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:26.768Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:26.774Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:26.778Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:26.889Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:26.892Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:27.064Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:27.182Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:27.438Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:27.564Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:27.759Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:27.866Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:28.039Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:28.118Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:28.129Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:28.242Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:28.498Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:28.608Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:28.802Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:28.923Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:29.079Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:29.200Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:29.456Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:29.578Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:29.762Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:29.880Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:30.065Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:30.173Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:30.457Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:30.572Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:30.739Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:30.841Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:31.044Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:31.167Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:31.456Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:31.607Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:31.815Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:31.929Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:32.140Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:32.424Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:32.618Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:32.768Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:32.960Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:33.047Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:33.225Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:33.402Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:33.577Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:33.689Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:33.858Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:33.969Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:34.137Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:34.422Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:34.598Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:34.723Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:34.896Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:35.000Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:35.185Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:35.406Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:35.586Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:35.688Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:35.838Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:35.964Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:36.162Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:36.361Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:36.545Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:36.658Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:36.842Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:36.963Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:37.162Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:37.362Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:37.536Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:37.652Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:37.790Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:38.061Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:38.298Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:38.416Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:38.441Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:38.451Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:38.562Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:38.737Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:38.741Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:38.812Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:38.848Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:39.081Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:39.087Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:39.129Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:39.249Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:39.339Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:39.412Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:39.523Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:39.705Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:39.817Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:39.994Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:40.137Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:40.323Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:40.328Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:40.333Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:40.439Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:40.455Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:40.459Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:40.570Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:40.573Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:40.755Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:40.882Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:40.891Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:40.961Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:40.981Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:41.007Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:41.026Z"}
+{"lat":"18.5362","level":"info","lng":"73.9167","message":"Trying Bhuvan WFS fallback","service":"land-registry","timestamp":"2026-04-20T14:08:41.039Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:41.051Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:41.124Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:41.303Z"}
+{"level":"warn","message":"All spatial sources exhausted — returning mock polygon","service":"land-registry","timestamp":"2026-04-20T14:08:41.404Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T14:09:03.917Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T14:09:03.926Z"}
+{"level":"info","message":"SIWE signature verified","service":"land-registry","timestamp":"2026-04-20T14:09:10.463Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"isNew":false,"level":"info","message":"User authenticated","role":"seller","service":"land-registry","timestamp":"2026-04-20T14:09:10.607Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"landId":"69e633a6dccc63fd60cc3d78","level":"info","message":"Calling /verify API (Puppeteer)","ownerNamesCount":1,"service":"land-registry","timeoutMs":180000,"timestamp":"2026-04-20T14:09:42.920Z"}
+{"body":{"area":"2.45","district":"अकोला","districtValue":"05","fullSurveyInput":"102/A","landId":"69e633a6dccc63fd60cc3d78","mobile":"","ownerName":"","taluka":"आकोट","talukaValue":"02","village":"अडगांव खु.","villageValue":"270500020047200000"},"level":"info","message":"Mahabhulekh verification started","service":"land-registry","timestamp":"2026-04-20T14:09:42.961Z"}
+{"error":"Request failed with status code 400","isTimeout":false,"landId":"69e633a6dccc63fd60cc3d78","level":"error","message":"Verify API failed or timed out","service":"land-registry","timestamp":"2026-04-20T14:11:12.605Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T14:18:43.542Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T14:18:43.548Z"}
+{"landId":"69e635cd23cf5fb2b6ca1a38","level":"info","message":"Calling /verify API (Puppeteer)","ownerNamesCount":1,"service":"land-registry","timeoutMs":180000,"timestamp":"2026-04-20T14:18:53.239Z"}
+{"body":{"area":"2.45","district":"अकोला","districtValue":"05","fullSurveyInput":"102/A","landId":"69e635cd23cf5fb2b6ca1a38","mobile":"","ownerName":"","taluka":"आकोट","talukaValue":"02","village":"अडगांव खु.","villageValue":"270500020047200000"},"level":"info","message":"Mahabhulekh verification started","service":"land-registry","timestamp":"2026-04-20T14:18:53.276Z"}
+{"error":"Request failed with status code 400","isTimeout":false,"landId":"69e635cd23cf5fb2b6ca1a38","level":"error","message":"Verify API failed or timed out","service":"land-registry","timestamp":"2026-04-20T14:19:42.526Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T14:31:19.695Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T14:31:19.706Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T14:40:13.190Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T14:40:13.198Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T14:48:14.124Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T14:48:14.130Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T15:21:45.918Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T15:21:45.948Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T15:28:23.112Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T15:28:23.128Z"}
+{"level":"info","message":"SIWE signature verified","service":"land-registry","timestamp":"2026-04-20T15:28:33.596Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"isNew":false,"level":"info","message":"User authenticated","role":"seller","service":"land-registry","timestamp":"2026-04-20T15:28:34.449Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T15:46:09.437Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T15:46:09.446Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T15:58:30.668Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T15:58:30.681Z"}
+{"level":"info","message":"SIWE signature verified","service":"land-registry","timestamp":"2026-04-20T15:58:45.622Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"isNew":false,"level":"info","message":"User authenticated","role":"seller","service":"land-registry","timestamp":"2026-04-20T15:58:46.767Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"landId":"69e64d6dd1a2750abcaf153f","level":"warn","message":"Co-owner wallet not found","service":"land-registry","timestamp":"2026-04-20T15:59:41.496Z","walletAddress":"HUWYE8W787218787"}
+{"districtValue":"5","landId":"69e64d6dd1a2750abcaf153f","level":"info","message":"Calling Mahabhulekh verification","ownerName":"निकिता मुलसम, शरण्य पिल्लई...","service":"land-registry","talukaValue":"4","timestamp":"2026-04-20T15:59:41.786Z"}
+{"body":{"area":"345","district":"अकोला","districtValue":"5","fullSurveyInput":"102/A","landId":"69e64d6dd1a2750abcaf153f","mobile":"","ownerName":"निकिता मुलसम, शरण्य पिल्लई","taluka":"आकोला","talukaValue":"4","village":"अकोला","villageValue":"270500040051260000"},"level":"info","message":"Mahabhulekh verification started","service":"land-registry","timestamp":"2026-04-20T15:59:41.817Z"}
+{"error":"Request failed with status code 400","isTimeout":false,"landId":"69e64d6dd1a2750abcaf153f","level":"error","message":"Verification API failed","service":"land-registry","timestamp":"2026-04-20T16:01:00.133Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T16:07:11.040Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T16:07:11.052Z"}
+{"error":"fetch failed","level":"error","message":"Translation failed","service":"land-registry","timestamp":"2026-04-20T16:07:53.563Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T16:08:51.177Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T16:08:51.190Z"}
+{"level":"info","message":"SIWE signature verified","service":"land-registry","timestamp":"2026-04-20T16:09:58.958Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"isNew":false,"level":"info","message":"User authenticated","role":"seller","service":"land-registry","timestamp":"2026-04-20T16:10:04.336Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T16:11:31.488Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T16:11:31.498Z"}
+{"level":"info","message":"SIWE signature verified","service":"land-registry","timestamp":"2026-04-20T16:11:38.229Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"isNew":false,"level":"info","message":"User authenticated","role":"seller","service":"land-registry","timestamp":"2026-04-20T16:11:38.376Z","walletAddress":"0x1017f090c9d72479fed4a02de0280522425d94ef"}
+{"landId":"69e650674e6755ee448baac9","level":"warn","message":"Co-owner wallet not found","service":"land-registry","timestamp":"2026-04-20T16:12:23.190Z","walletAddress":"0x463728hfhjvjkf"}
+{"districtValue":"5","landId":"69e650674e6755ee448baac9","level":"info","message":"Calling Mahabhulekh verification","ownerName":"निकिता मुलसम, शरण्य पिल्लई...","service":"land-registry","talukaValue":"4","timestamp":"2026-04-20T16:12:23.444Z"}
+{"body":{"area":"345","district":"अकोला","districtValue":"5","fullSurveyInput":"102/A","landId":"69e650674e6755ee448baac9","mobile":"","ownerName":"निकिता मुलसम, शरण्य पिल्लई","taluka":"आकोला","talukaValue":"4","village":"अकोला","villageValue":"270500040051260000"},"level":"info","message":"Mahabhulekh verification started","service":"land-registry","timestamp":"2026-04-20T16:12:23.473Z"}
+{"error":"Request failed with status code 400","isTimeout":false,"landId":"69e650674e6755ee448baac9","level":"error","message":"Verification API failed","service":"land-registry","timestamp":"2026-04-20T16:13:23.941Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T16:14:53.280Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T16:14:53.307Z"}
+{"landId":"69e65109db4b3138ef24b913","level":"warn","message":"Co-owner wallet not found","service":"land-registry","timestamp":"2026-04-20T16:15:05.228Z","walletAddress":"0x463728hfhjvjkf"}
+{"districtValue":"5","landId":"69e65109db4b3138ef24b913","level":"info","message":"Calling Mahabhulekh verification","ownerName":"निकिता मुलसम, शरण्य पिल्लई...","service":"land-registry","talukaValue":"4","timestamp":"2026-04-20T16:15:05.522Z"}
+{"body":{"area":"345","district":"अकोला","districtValue":"5","fullSurveyInput":"102/A","landId":"69e65109db4b3138ef24b913","mobile":"","ownerName":"निकिता मुलसम, शरण्य पिल्लई","taluka":"आकोला","talukaValue":"4","village":"अकोला","villageValue":"270500040051260000"},"level":"info","message":"Mahabhulekh verification started","service":"land-registry","timestamp":"2026-04-20T16:15:05.586Z"}
+{"level":"info","message":"🚀 Land Registry Server running on port 5000","service":"land-registry","timestamp":"2026-04-20T16:15:34.070Z"}
+{"level":"info","message":"📡 API base: http://localhost:5000/api/v1","service":"land-registry","timestamp":"2026-04-20T16:15:34.079Z"}
+{"landId":"69e6514784fee4ba4260ed16","level":"warn","message":"Co-owner wallet not found","service":"land-registry","timestamp":"2026-04-20T16:16:07.639Z","walletAddress":"0x463728hfhjvjkf"}
+{"districtValue":"5","landId":"69e6514784fee4ba4260ed16","level":"info","message":"Calling Mahabhulekh verification","ownerName":"निकिता मुलाम, शरण्य पिल्लई...","service":"land-registry","talukaValue":"4","timestamp":"2026-04-20T16:16:08.003Z"}
+{"body":{"area":"345","district":"अकोला","districtValue":"5","fullSurveyInput":"102/A","landId":"69e6514784fee4ba4260ed16","mobile":"","ownerName":"निकिता मुलाम, शरण्य पिल्लई","taluka":"आकोला","talukaValue":"4","village":"अकोला","villageValue":"270500040051260000"},"level":"info","message":"Mahabhulekh verification started","service":"land-registry","timestamp":"2026-04-20T16:16:08.071Z"}

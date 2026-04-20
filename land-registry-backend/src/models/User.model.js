@@ -14,6 +14,10 @@ const userSchema = new mongoose.Schema({
     enum: ['seller', 'buyer', 'officer', 'admin'],
     required: true
   },
+  fullName: {
+      type: String,
+      trim: true,
+  },   
   profile: {
     fullName: { type: String, trim: true },
     aadhaarHash: String,

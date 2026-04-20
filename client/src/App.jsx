@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import RoleGuard from './components/shared/RoleGuard.jsx';
 import LandingPage from './components/pages/LandingPage.jsx';
+import MainDashboard from './components/pages/MainDashboard.jsx';
 import BuyerPage from './components/buyer/BuyerPage.jsx';
 import SellerPage from './components/seller/SellerPage.jsx';
 import OfficerPage from './components/officer/OfficerPage.jsx';
@@ -29,10 +30,9 @@ const SmartLanding = () => {
     );
   }
 
-  // Already authenticated → redirect to role dashboard
-  if (isAuthenticated && user?.role) {
-    const roleRoutes = { buyer: '/buyer', seller: '/seller', officer: '/officer', admin: '/officer' };
-    return <Navigate to={roleRoutes[user.role] || '/buyer'} replace />;
+  // Already authenticated → redirect to main dashboard
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <LandingPage />;
@@ -42,16 +42,17 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<SmartLanding />} />
+      <Route path="/dashboard" element={<MainDashboard />} />
 
-      {/* Buyer routes — buyer only */}
-      <Route path="/buyer" element={<RoleGuard allowed={['buyer']}><BuyerPage /></RoleGuard>} />
-      <Route path="/buyer/documents" element={<RoleGuard allowed={['buyer']}><DocumentsPage /></RoleGuard>} />
-      <Route path="/buyer/transfers" element={<RoleGuard allowed={['buyer']}><TransfersPage /></RoleGuard>} />
+      {/* Buyer routes — buyer and seller can access */}
+      <Route path="/buyer" element={<RoleGuard allowed={['buyer', 'seller']}><BuyerPage /></RoleGuard>} />
+      <Route path="/buyer/documents" element={<RoleGuard allowed={['buyer', 'seller']}><DocumentsPage /></RoleGuard>} />
+      <Route path="/buyer/transfers" element={<RoleGuard allowed={['buyer', 'seller']}><TransfersPage /></RoleGuard>} />
 
-      {/* Seller routes — seller only */}
-      <Route path="/seller" element={<RoleGuard allowed={['seller']}><SellerPage /></RoleGuard>} />
-      <Route path="/seller/documents" element={<RoleGuard allowed={['seller']}><SellerDocumentsPage /></RoleGuard>} />
-      <Route path="/seller/transfers" element={<RoleGuard allowed={['seller']}><SellerTransfersPage /></RoleGuard>} />
+      {/* Seller routes — buyer and seller can access */}
+      <Route path="/seller" element={<RoleGuard allowed={['buyer', 'seller']}><SellerPage /></RoleGuard>} />
+      <Route path="/seller/documents" element={<RoleGuard allowed={['buyer', 'seller']}><SellerDocumentsPage /></RoleGuard>} />
+      <Route path="/seller/transfers" element={<RoleGuard allowed={['buyer', 'seller']}><SellerTransfersPage /></RoleGuard>} />
 
       {/* Officer routes — officer + admin */}
       <Route path="/officer" element={<RoleGuard allowed={['officer', 'admin']}><OfficerPage /></RoleGuard>} />

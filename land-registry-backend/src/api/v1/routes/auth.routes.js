@@ -8,6 +8,7 @@ const { authLimiter } = require('../../../middleware/rateLimit.middleware');
 router.post('/nonce', authLimiter, controller.getNonce);
 router.post('/verify', authLimiter, controller.verifySignature);
 router.get('/me', authenticate, controller.getMe);
+router.patch('/role', authenticate, controller.updateRole);
 
 // Admin-only: pre-whitelist officers
 router.post('/whitelist-officer', authenticate, requireRole('admin'), controller.whitelistOfficer);

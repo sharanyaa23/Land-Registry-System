@@ -68,6 +68,37 @@ export const AuthProvider = ({ children }) => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
+   * Simple wallet connection test (no auth)
+   */
+  const testWalletConnection = useCallback(async () => {
+    if (!window.ethereum) {
+      alert('Please install MetaMask to use this application.');
+      return null;
+    }
+    try {
+      console.log('Testing basic wallet connection...');
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const address = accounts[0];
+      console.log('Basic wallet connection successful:', address);
+      
+      const provider = new BrowserProvider(window.ethereum);
+      const network = await provider.getNetwork();
+      const chainId = Number(network.chainId);
+      console.log('Network:', chainId);
+      
+      // Update basic state without authentication
+      setWallet(address);
+      setChainId(chainId);
+      
+      return { address, chainId };
+    } catch (err) {
+      console.error('Basic wallet connection failed:', err);
+      alert(`Basic connection failed: ${err.message}`);
+      return null;
+    }
+  }, []);
+
+  /**
    * Connect wallet + SIWE auth.
    * Returns { user, isNew, existingRole } so the caller can decide navigation.
    * - Returning users: existingRole is set, role param is ignored
@@ -80,28 +111,46 @@ export const AuthProvider = ({ children }) => {
     }
     try {
       setLoading(true);
+      console.log('Starting wallet connection...');
+      
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       const address = accounts[0];
+      console.log('Wallet connected:', address);
       setWallet(address);
 
       const provider = new BrowserProvider(window.ethereum);
       const bal = await provider.getBalance(address);
       setBalance(parseFloat((Number(bal) / 1e18).toFixed(4)));
       const network = await provider.getNetwork();
-      setChainId(Number(network.chainId));
+      const chainId = Number(network.chainId);
+      setChainId(chainId);
+      console.log('Network detected:', chainId);
 
+      // Check if on correct network (Amoy)
+      if (chainId !== 80002) {
+        console.error('Wrong network detected:', chainId);
+        alert(`Please switch to Polygon Amoy Testnet (Chain ID: 80002). Current network: Chain ${chainId}`);
+        return null;
+      }
+
+      console.log('Requesting nonce from backend...');
       // Backend returns { success, nonce, message, existingRole }
       const nonceRes = await authAPI.getNonce(address);
+      console.log('Nonce response:', nonceRes.data);
       const siweMessage = nonceRes.data.message;
       const existingRole = nonceRes.data.existingRole;
 
+      console.log('Requesting signature...');
       // Sign the SIWE message
       const signer = await provider.getSigner();
       const signature = await signer.signMessage(siweMessage);
+      console.log('Signature obtained');
 
+      console.log('Verifying signature with backend...');
       // Verify with backend => JWT
       // For returning users, backend ignores the role param and uses their existing role
       const authRes = await authAPI.verifySignature({ message: siweMessage, signature, role });
+      console.log('Auth response:', authRes.data);
       const jwt = authRes.data.token;
       const userData = authRes.data.user;
 
@@ -109,6 +158,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('dlr_user', JSON.stringify(userData));
       setToken(jwt);
       setUser(userData);
+      console.log('Authentication successful!');
 
       return {
         user: userData,
@@ -117,6 +167,7 @@ export const AuthProvider = ({ children }) => {
       };
     } catch (err) {
       console.error('Wallet connection failed:', err);
+      alert(`Connection failed: ${err.message || err.response?.data?.error || 'Unknown error'}`);
       return null;
     } finally {
       setLoading(false);
@@ -132,8 +183,24 @@ export const AuthProvider = ({ children }) => {
     setBalance(null);
   }, []);
 
+  const switchRole = useCallback(async (newRole) => {
+  try {
+    // Call a backend endpoint to update role + re-issue JWT
+    const res = await authAPI.updateRole(newRole);
+    const newToken = res.data.token;
+    const updatedUser = res.data.user;
+    
+    localStorage.setItem('dlr_token', newToken);
+    localStorage.setItem('dlr_user', JSON.stringify(updatedUser));
+    setToken(newToken);
+    setUser(updatedUser);
+  } catch (err) {
+    console.error('Role switch failed:', err);
+  }
+}, []);
+
   return (
-    <AuthContext.Provider value={{ user, token, wallet, truncatedWallet, balance, chainId, isAuthenticated, loading, connectWallet, logout }}>
+    <AuthContext.Provider value={{ user, token, wallet, truncatedWallet, balance, chainId, isAuthenticated, loading, connectWallet, logout, switchRole, testWalletConnection }}>
       {children}
     </AuthContext.Provider>
   );

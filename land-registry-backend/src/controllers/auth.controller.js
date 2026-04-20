@@ -4,6 +4,8 @@ const signatureService = require('../services/auth/signature.service');
 const { buildSiweMessage } = require('../utils/walletUtils');
 const User = require('../models/User.model');
 const logger = require('../utils/logger');
+// Make sure this import exists at the top of auth.controller.js
+const { generateToken } = require('../middleware/auth.middleware');
 
 /**
  * POST /auth/nonce
@@ -148,4 +150,24 @@ exports.whitelistOfficer = asyncHandler(async (req, res) => {
       officerMeta: user.officerMeta
     }
   });
+});
+
+
+exports.updateRole = asyncHandler(async (req, res) => {
+  const { role } = req.body;
+  const validRoles = ['buyer', 'seller'];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ success: false, error: 'Invalid role' });
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.userId,
+    { role },
+    { new: true }
+  );
+
+  // Re-issue JWT with new role
+  const token = generateToken(user);
+  console.log('updateRole called', { userId: req.userId, body: req.body });
+  res.json({ success: true, user, token });
 });

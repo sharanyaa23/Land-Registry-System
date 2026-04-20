@@ -29,8 +29,6 @@ app.get('/api/health', (req, res) => {
 app.use('/api/v1/auth', require('./api/v1/routes/auth.routes'));
 app.use('/api/v1/profile', require('./api/v1/routes/profile.routes'));
 app.use('/api/v1/land', require('./api/v1/routes/land.routes'));
-app.use('/api/v1/land', require('./api/v1/routes/coowner.routes'));   // /land/:id/coowners
-app.use('/api/v1/land', require('./api/v1/routes/polygon.routes'));   // /land/:id/polygon
 app.use('/api/v1/ipfs', require('./api/v1/routes/ipfs.routes'));
 app.use('/api/v1/verification', require('./api/v1/routes/verification.routes'));
 app.use('/api/v1/officer', require('./api/v1/routes/officer.routes'));

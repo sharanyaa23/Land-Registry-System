@@ -2,8 +2,45 @@ const asyncHandler = require('../utils/asyncHandler');
 const Land = require('../models/Land.model');
 const CoOwner = require('../models/CoOwner.model');
 const AuditLog = require('../models/AuditLog.model');
+const User = require('../models/User.model');
 const paginate = require('../utils/paginateQuery');
 const logger = require('../utils/logger');
+const locationData = require('../data/maharashtra_full.json');
+const { translateToMarathi } = require('../utils/translateToMarathi');
+const axios = require('axios');
+
+const cleanMarathi = (name) => (name || '').replace(/^[\d]+\s*/, '').trim();
+
+const marathiName = {
+  district: (id) => {
+    const d = locationData.find((d) => String(d.id) === String(id));
+    return d ? cleanMarathi(d.name) : '';
+  },
+  taluka: (districtId, talukaId) => {
+    const d = locationData.find((d) => String(d.id) === String(districtId));
+    if (!d) return '';
+    const t = d.talukas.find((t) => String(t.id) === String(talukaId));
+    return t ? cleanMarathi(t.name) : '';
+  },
+  village: (districtId, talukaId, villageId) => {
+    const d = locationData.find((d) => String(d.id) === String(districtId));
+    if (!d) return '';
+    const t = d.talukas.find((t) => String(t.id) === String(talukaId));
+    if (!t) return '';
+    const v = t.villages.find((v) => String(v.id) === String(villageId));
+    return v ? cleanMarathi(v.name) : '';
+  }
+};
+
+
+const INTERNAL_API_BASE = process.env.INTERNAL_API_BASE || 'http://localhost:5000/api/v1';
+
+const VERDICT_TO_STATUS = {
+  auto_pass: 'registered',
+  auto_fail: 'verification_failed',
+  officer_review: 'officer_review'
+};
+
 
 /**
  * POST /land/register
@@ -11,46 +48,227 @@ const logger = require('../utils/logger');
  * Seller-only.
  */
 exports.register = asyncHandler(async (req, res) => {
+
+  console.log('\n=== REGISTER CONTROLLER HIT ===');
+  console.log('Time:', new Date().toISOString());
+  console.log('Method:', req.method);
+  console.log('Full URL:', req.originalUrl);
+  console.log('Content-Type:', req.get('Content-Type'));
+  console.log('Authorization header exists:', !!req.headers.authorization);
+  
+  console.log('\n=== FULL req.body ===');
+  console.dir(req.body, { depth: null });
+
+  console.log('\nExtracted fields:');
+  console.log('ownerName     :', `"${req.body?.ownerName}"`);
+  console.log('districtValue :', req.body?.districtValue);
+  console.log('surveyNumber  :', req.body?.surveyNumber);
+  console.log('coOwners      :', req.body?.coOwners?.length || 0);
   const {
+    ownerName,
     district, districtValue,
     taluka, talukaValue,
     village, villageValue,
     surveyNumber, gatNumber,
     area, areaUnit,
-    encumbrances, boundaryDescription
+    encumbrances, boundaryDescription,
+    coOwners = [],
+    mobile
   } = req.body;
 
+
+
+  // ==================== VALIDATION ====================
+  if (!ownerName?.trim()) {
+    return res.status(400).json({ success: false, message: "Owner name is required" });
+  }
+  if (!districtValue || !talukaValue || !villageValue) {
+    return res.status(400).json({ success: false, message: "Location details are required" });
+  }
+  if (!surveyNumber?.trim()) {
+    return res.status(400).json({ success: false, message: "Survey number is required" });
+  }
+
+  // ==================== CLEAN VALUES (Remove leading zeros) ====================
+  const cleanDistrictValue = String(districtValue).replace(/^0+/, '') || districtValue;
+  const cleanTalukaValue = String(talukaValue).replace(/^0+/, '') || talukaValue;
+  // villageValue usually remains unchanged (it's a full code)
+  const cleanVillageValue = villageValue;
+
+  // ==================== RESOLVE MARATHI NAMES ====================
+  const marathiDistrict = marathiName.district(districtValue) || district || '';
+  const marathiTaluka = marathiName.taluka(districtValue, talukaValue) || taluka || '';
+  const marathiVillage = marathiName.village(districtValue, talukaValue, villageValue) || village || '';
+
+  // ==================== TRANSLATE NAMES ====================
+  const marathiOwnerName = await translateToMarathi(ownerName.trim());
+
+  const coOwnerTranslations = await Promise.all(
+    coOwners.map(co => translateToMarathi((co.fullName || co.name || '').trim()))
+  );
+
+  // ==================== CREATE LAND RECORD ====================
   const land = await Land.create({
     owner: req.userId,
     location: {
-      district, districtValue,
-      taluka, talukaValue,
-      village, villageValue,
-      surveyNumber, gatNumber
+      district: marathiDistrict,
+      districtValue: cleanDistrictValue,        // ← Cleaned
+      taluka: marathiTaluka,
+      talukaValue: cleanTalukaValue,            // ← Cleaned
+      village: marathiVillage,
+      villageValue: cleanVillageValue,
+      surveyNumber: surveyNumber.trim(),
+      gatNumber: gatNumber?.trim() || null
     },
     area: {
-      value: parseFloat(area),
-      unit: areaUnit || 'sqm'
+      value: parseFloat(area) || 0,
+      unit: areaUnit || 'hectare'
     },
-    encumbrances: encumbrances || '',
-    boundaryDescription: boundaryDescription || '',
-    status: 'draft'
+    encumbrances: encumbrances?.trim() || '',
+    boundaryDescription: boundaryDescription?.trim() || '',
+    coOwners: [],
+    status: 'verification_pending'
   });
 
-  // Audit log
+  // ==================== PROCESS CO-OWNERS ====================
+  const coOwnerIds = [];
+
+  for (let i = 0; i < coOwners.length; i++) {
+    const co = coOwners[i];
+    let userId = null;
+
+    if (co.walletAddress?.trim()) {
+      const foundUser = await User.findOne({
+        walletAddress: co.walletAddress.trim().toLowerCase()
+      }).select('_id').lean();
+
+      if (foundUser) userId = foundUser._id;
+      else {
+        logger.warn('Co-owner wallet not found', {
+          walletAddress: co.walletAddress,
+          landId: land._id
+        });
+      }
+    }
+
+    const coOwnerDoc = await CoOwner.create({
+      land: land._id,
+      user: userId,
+      fullName: coOwnerTranslations[i] || (co.fullName || co.name || ''),
+      walletAddress: co.walletAddress ? co.walletAddress.trim().toLowerCase() : null,
+      sharePercent: parseFloat(co.sharePercent) || 0,
+      isOnline: !!userId,
+      nocStatus: 'pending'
+    });
+
+    coOwnerIds.push(coOwnerDoc._id);
+  }
+
+  // Link co-owners to land
+  if (coOwnerIds.length > 0) {
+    await Land.findByIdAndUpdate(land._id, { coOwners: coOwnerIds });
+  }
+
+  // ==================== UPDATE MAIN OWNER NAME ====================
+// ==================== UPDATE MAIN OWNER NAME ====================
+if (marathiOwnerName?.trim()) {
+  const updatedUser = await User.findByIdAndUpdate(
+    req.userId,
+    { $set: { 'profile.fullName': marathiOwnerName.trim() } },
+    { new: true }
+  );
+  console.log('Updated user profile fullName:', updatedUser?.profile?.fullName);
+}
+
+  // ==================== AUDIT LOG ====================
   await AuditLog.create({
     actor: req.userId,
     action: 'land.register',
     target: `Land:${land._id}`,
-    details: { surveyNumber, district, village },
+    details: {
+      surveyNumber: surveyNumber.trim(),
+      district: marathiDistrict,
+      village: marathiVillage
+    },
     ipAddress: req.ip
   });
 
-  logger.info('Land registered', { landId: land._id, survey: surveyNumber });
+  // ==================== CALL MAHABHULEKH VERIFICATION ====================
+  let landStatus = 'verification_failed';
+  let verdict = null;
+  let verificationId = null;
 
-  res.status(201).json({
+  try {
+    const finalAllOwnerNames = [marathiOwnerName, ...coOwnerTranslations]
+      .filter(Boolean)
+      .join(', ');
+
+    const verifyPayload = {
+      landId: String(land._id),
+      districtValue: cleanDistrictValue,     // ← Cleaned value (5 instead of 05)
+      talukaValue: cleanTalukaValue,         // ← Cleaned value (4 instead of 02)
+      villageValue: cleanVillageValue,
+      fullSurveyInput: surveyNumber.trim(),
+      mobile: mobile?.trim() || '',
+      ownerName: finalAllOwnerNames || marathiOwnerName,   // Never empty
+      area: String(parseFloat(area) || 0),
+      district: marathiDistrict,
+      taluka: marathiTaluka,
+      village: marathiVillage
+    };
+
+    const timeoutMs = parseInt(process.env.VERIFY_API_TIMEOUT) || 240000;
+
+    logger.info('Calling Mahabhulekh verification', {
+      landId: land._id,
+      districtValue: cleanDistrictValue,
+      talukaValue: cleanTalukaValue,
+      ownerName: finalAllOwnerNames ? finalAllOwnerNames.substring(0, 80) + '...' : marathiOwnerName
+    });
+
+    const verifyRes = await axios.post(
+      `${INTERNAL_API_BASE}/verification/verify`,
+      verifyPayload,
+      {
+        headers: { Authorization: req.headers.authorization || '' },
+        timeout: timeoutMs
+      }
+    );
+
+    verdict = verifyRes.data?.verdict || null;
+    verificationId = verifyRes.data?.verificationId || null;
+    landStatus = VERDICT_TO_STATUS[verdict] ?? 'verification_failed';
+
+    await Land.findByIdAndUpdate(land._id, { status: landStatus });
+
+    logger.info('Verification initiated', { landId: land._id, verdict, landStatus });
+
+  } catch (err) {
+    const isTimeout = err.code === 'ECONNABORTED' || err.message?.includes('timeout');
+    logger.error('Verification API failed', {
+      landId: land._id,
+      error: isTimeout ? `Timeout (${timeoutMs}ms)` : err.message,
+      isTimeout
+    });
+
+    await Land.findByIdAndUpdate(land._id, {
+      status: 'verification_failed',
+      legacyFlag: true
+    }).catch(() => { });
+  }
+
+  // ==================== FINAL RESPONSE ====================
+  const updatedLand = await Land.findById(land._id)
+    .populate('coOwners')
+    .lean();
+
+  return res.status(201).json({
     success: true,
-    land
+    message: "Land registered successfully",
+    land: updatedLand,
+    verificationStatus: landStatus,
+    verdict,
+    verificationId
   });
 });
 
@@ -70,7 +288,7 @@ exports.list = asyncHandler(async (req, res) => {
  * Search lands for buyers (only registered/listed lands).
  */
 exports.search = asyncHandler(async (req, res) => {
-  const filter = { status: { $in: ['registered', 'listed'] } };
+  const filter = { status: { $in: ['registered', 'listed', 'verification_passed'] } };
 
   if (req.query.district) filter['location.district'] = new RegExp(req.query.district, 'i');
   if (req.query.taluka) filter['location.taluka'] = new RegExp(req.query.taluka, 'i');

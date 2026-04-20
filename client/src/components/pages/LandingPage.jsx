@@ -6,8 +6,11 @@ import { IconBlockchain, IconWallet, IconLand, IconShield, IconTransfer, IconPol
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, truncatedWallet, balance, chainId, user, connectWallet, loading } = useAuth();
+  const { isAuthenticated, truncatedWallet, balance, chainId, user, connectWallet, loading, testWalletConnection } = useAuth();
   const isPolygon = chainId === 137 || chainId === 80001 || chainId === 80002;
+  const isAmoy = chainId === 80002;
+  const isMumbai = chainId === 80001;
+  const isMainnet = chainId === 137;
 
   // Role selection state for new users
   const [connectingRole, setConnectingRole] = useState(null);
@@ -19,8 +22,19 @@ const LandingPage = () => {
    */
   const handleRoleSelect = async (role) => {
     if (isAuthenticated) {
-      // Already authed — navigate to the user's actual role (not the card they clicked)
+      // Already authed — navigate to user's actual role (not the card they clicked)
       navigate(`/${user?.role || 'buyer'}`);
+      return;
+    }
+
+    // Check if user is on wrong network
+    if (chainId && chainId !== 80002) {
+      const confirmSwitch = window.confirm(
+        `Please switch to Polygon Amoy Testnet (Chain ID: 80002) to continue.\n\nCurrent network: Chain ${chainId}\n\nClick OK to see network switching instructions.`
+      );
+      if (confirmSwitch) {
+        window.open('https://chainlist.org/chain/polygon-amoy-testnet', '_blank');
+      }
       return;
     }
 
@@ -29,27 +43,27 @@ const LandingPage = () => {
     setConnectingRole(null);
 
     if (result?.user) {
-      // Navigate to the user's actual role from the backend
-      // (returning users keep their existing role regardless of which card was clicked)
-      navigate(`/${result.user.role}`);
+      // Navigate to main dashboard for role selection
+      navigate('/');
     }
   };
 
   /**
-   * Generic "Connect Wallet" CTA — defaults to buyer role
+   * Generic "Connect Wallet" CTA - defaults to main dashboard
    */
   const handleConnect = async () => {
-    if (isAuthenticated) {
-      navigate(`/${user?.role || 'buyer'}`);
-      return;
-    }
-    setConnectingRole('default');
-    const result = await connectWallet('buyer');
-    setConnectingRole(null);
+  if (isAuthenticated) { navigate('/'); return; }
+  if (!window.ethereum) { alert('Please install MetaMask'); return; }
+  await window.ethereum.request({ method: 'eth_requestAccounts' });
+};
 
-    if (result?.user) {
-      navigate(`/${result.user.role}`);
-    }
+  /**
+   * Debug test - basic wallet connection without auth
+   */
+  const handleTestConnection = async () => {
+    console.log('Testing basic wallet connection...');
+    const result = await testWalletConnection();
+    console.log('Test result:', result);
   };
 
   const isConnecting = loading || !!connectingRole;
@@ -171,8 +185,8 @@ const LandingPage = () => {
                 <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
                   isAuthenticated && isPolygon ? 'text-secondary' : isAuthenticated ? 'text-amber-400' : 'text-on-surface-variant/40'
                 }`}>
-                  <div className={`w-1.5 h-1.5 rounded-full ${isAuthenticated ? (isPolygon ? 'bg-secondary animate-pulse' : 'bg-amber-400') : 'bg-[#1d1f27]'}`} />
-                  {isAuthenticated ? (isPolygon ? 'Active' : 'Wrong Network') : 'Offline'}
+                  <div className={`w-1.5 h-1.5 rounded-full ${isAuthenticated ? (isAmoy ? 'bg-green-500 animate-pulse' : isMumbai ? 'bg-yellow-500' : isMainnet ? 'bg-blue-500' : 'bg-amber-400') : 'bg-[#1d1f27]'}`} />
+                  {isAuthenticated ? (isAmoy ? 'Amoy' : isMumbai ? 'Mumbai' : isMainnet ? 'Mainnet' : 'Wrong Network') : 'Offline'}
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -181,7 +195,7 @@ const LandingPage = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-on-surface">
-                    {isAuthenticated ? (isPolygon ? 'Polygon Amoy Testnet' : `Chain ${chainId}`) : 'Not connected'}
+                    {isAuthenticated ? (chainId === 80002 ? 'Polygon Amoy Testnet' : chainId === 80001 ? 'Polygon Mumbai Testnet' : chainId === 137 ? 'Polygon Mainnet' : `Chain ${chainId}`) : 'Not connected'}
                   </p>
                   <p className="text-[10px] text-on-surface-variant/50 font-mono">
                     {isAuthenticated ? 'dl-reg-rpc-01.polygon.net' : 'Awaiting wallet'}
