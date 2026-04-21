@@ -118,11 +118,3 @@ const translateToMarathi = async (text) => {
     return trimmed; // graceful fallback
   }
 };
-
-module.exports = {
-  translateToMarathi,
-  // Optional: Export helpers for testing
-  fixDevanagari,
-  fixSchwaPerWord,
-  fixSurnames
-};
