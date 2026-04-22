@@ -1,164 +1,191 @@
 // src/services/spatial/mahabhunaksha.service.js
-const axios = require('axios');
-const logger = require('../../utils/logger');
+const fs     = require('fs');
+const scraper = require('../mahabhulekh/scraper.service');
+const parser  = require('../mahabhulekh/parser.service');
+const coordinateTransform = require('./coordinateTransform.service');
+const logger  = require('../../utils/logger');
 
-/**
- * Fetches plot boundary coordinates from Mahabhunaksha.
- * Uses the ArcGIS MapServer behind the portal.
- *
- * Base: https://mahabhunaksha.mahabhumi.gov.in/
- * Tile service layers expose plot geometries via REST query.
- */
+class MahabhunakshaService {
 
-const BASE_URL = 'https://mahabhunaksha.mahabhumi.gov.in';
+  async getPlotDetails(params = {}) {
+    const { district, taluka, village, surveyNo, useApiFirst = true } = params;
 
-// District code → layer index mapping (top-level REST service)
-// Layer 0 = survey boundaries statewide
-const REST_BASE = `${BASE_URL}/bhunakshaservice/rest/services`;
+    if (!district || !taluka || !village || !surveyNo)
+      throw new Error('district, taluka, village, and surveyNo are required');
 
-/**
- * Query plot geometry from Mahabhunaksha REST API.
- * Returns GeoJSON-compatible polygon coordinates or null.
- *
- * @param {Object} params
- * @param {string} params.districtCode  e.g. "27" (Maharashtra LGCD)
- * @param {string} params.surveyNo      e.g. "100/A/1"
- * @param {string} params.villageCode   e.g. "270500040051260000"
- * @returns {Promise<{coordinates: number[][], bbox: number[], center: number[]} | null>}
- */
-exports.fetchPlotGeometry = async ({ districtCode, surveyNo, villageCode }) => {
-  try {
-    // Mahabhunaksha REST endpoint for parcel query
-    // Layer 2 typically holds plot/survey parcel polygons
-    const queryUrl = `${REST_BASE}/MH_${districtCode}/MapServer/2/query`;
+    let rawData = null;
 
-    const params = {
-      where: `SURVEYNO='${surveyNo}'`,
-      outFields: '*',
-      f: 'geojson',
-      returnGeometry: true,
-      outSR: 4326,  // WGS84
-    };
-
-    // Add village filter if provided
-    if (villageCode) {
-      params.where += ` AND VILLAGECODE='${villageCode}'`;
+    // ── Strategy 1: WFS API (fast, usually fails) ──────────────────────────
+    if (useApiFirst) {
+      logger.info('[MBN Service] Trying API scrape first...');
+      try {
+        const apiResult = await scraper.scrapeMahabhunakshaViaApi({
+          stateCode: 'MH', districtCode: district,
+          talukaCode: taluka, villageCode: village, surveyNo,
+        });
+        if (apiResult.success && apiResult.featureJson) {
+          rawData = parser.parseMahabhunakshaWfsFeature(apiResult.featureJson);
+          logger.info('[MBN Service] API scrape succeeded');
+        }
+      } catch (err) {
+        logger.warn('[MBN Service] API scrape threw, falling through:', err.message);
+      }
     }
 
-    const response = await axios.get(queryUrl, {
-      params,
-      timeout: 15000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0',
-        'Referer': BASE_URL,
+    // ── Strategy 2: Puppeteer UI scrape ────────────────────────────────────
+    if (!rawData || !rawData.vertices?.length) {
+      logger.info('[MBN Service] Falling back to Puppeteer scrape...');
+
+      const scrapeResult = await scraper.scrapeMahabhunaksha({
+        district, taluka, village, surveyNo, timeoutMs: 180000,
+      });
+
+      if (!scrapeResult.success) {
+        throw new Error(`Mahabhunaksha scrape failed: ${scrapeResult.reason}`);
       }
+
+      // ── Step A: Try parsing HTML first (fast, works if vertex table is in DOM)
+      const htmlForParsing = scrapeResult.mapReportHtml || scrapeResult.infoPanelHtml || '';
+
+      logger.info('[MBN Service] HTML lengths', {
+        mapReportHtmlLen: scrapeResult.mapReportHtml?.length  ?? 0,
+        infoPanelHtmlLen: scrapeResult.infoPanelHtml?.length  ?? 0,
+      });
+
+      rawData = parser.parseMahabhunakshaLayerReport(htmlForParsing);
+      rawData.plotInfoEntries = scrapeResult.plotInfoEntries || [];
+
+      // ── Step B: If HTML parsing gave no vertices, OCR the screenshot ──────
+      // The PDF is rendered inside an iframe — its content is NOT in the page
+      // HTML. The screenshot of the right panel IS the plot boundary map with
+      // vertex coordinates printed on it, so we OCR that image.
+      if (!rawData.vertices?.length && scrapeResult.screenshotPath) {
+        logger.info('[MBN Service] No vertices from HTML — trying OCR on screenshot', {
+          screenshotPath: scrapeResult.screenshotPath,
+        });
+
+        try {
+          const imageBuffer = fs.readFileSync(scrapeResult.screenshotPath);
+          const ocrResult   = await parser.parseWithGoogleVision(imageBuffer);
+
+          logger.info('[MBN Service] OCR result', {
+            rawTextLen:  ocrResult.rawText?.length ?? 0,
+            vertexCount: ocrResult.vertices?.length ?? 0,
+          });
+
+          if (ocrResult.vertices?.length) {
+            rawData.vertices = ocrResult.vertices;
+            logger.info('[MBN Service] Vertices extracted via OCR', {
+              count: rawData.vertices.length,
+            });
+          } else {
+            // Also try parsing the raw OCR text through the layer-report parser
+            // in case the coordinate format matches those patterns
+            const ocrParsed = parser.parseMahabhunakshaLayerReport(
+              `<pre>${ocrResult.rawText}</pre>`
+            );
+            if (ocrParsed.vertices?.length) {
+              rawData.vertices = ocrParsed.vertices;
+              logger.info('[MBN Service] Vertices extracted via OCR+layer-report parser', {
+                count: rawData.vertices.length,
+              });
+            } else {
+              logger.warn('[MBN Service] OCR ran but still no vertices', {
+                rawTextSnippet: ocrResult.rawText?.slice(0, 500),
+              });
+            }
+          }
+
+          // Back-fill other fields from OCR if missing
+          if (!rawData.plotNo && ocrResult.plotNo)         rawData.plotNo     = ocrResult.plotNo;
+          if (!rawData.surveyCode && ocrResult.surveyCode) rawData.surveyCode = ocrResult.surveyCode;
+
+        } catch (ocrErr) {
+          logger.error('[MBN Service] OCR failed:', ocrErr.message);
+        }
+      }
+
+      // ── Step C: Back-fill owners / area / plotNo from plotInfoEntries ─────
+      if (!rawData.owners?.length && rawData.plotInfoEntries.length) {
+        rawData.owners = rawData.plotInfoEntries
+          .map(e => e.ownerName)
+          .filter(Boolean);
+      }
+
+      if (!rawData.area && rawData.plotInfoEntries.length) {
+        const areas = rawData.plotInfoEntries
+          .map(e => parseFloat(e.totalArea))
+          .filter(v => v > 0);
+        if (areas.length) rawData.area = Math.max(...areas);
+      }
+
+      if (!rawData.plotNo && rawData.plotInfoEntries.length) {
+        rawData.plotNo = rawData.plotInfoEntries[0]?.surveyNo || surveyNo;
+      }
+
+      // Store screenshot path so controller can surface it if needed
+      rawData.screenshotPath = scrapeResult.screenshotPath || null;
+
+      logger.info('[MBN Service] Puppeteer scrape complete', {
+        screenshotPath:  scrapeResult.screenshotPath,
+        plotInfoEntries: rawData.plotInfoEntries.length,
+        vertices:        rawData.vertices?.length ?? 0,
+        plotNo:          rawData.plotNo,
+      });
+
+      if (!rawData.vertices?.length) {
+        logger.warn('[MBN Service] Still no vertices after all strategies', {
+          htmlSnippet: htmlForParsing.slice(0, 600),
+        });
+      }
+    }
+
+    // ── CRS transform ──────────────────────────────────────────────────────
+    let transformedVertices = [];
+    let sourceCRS = 'WGS84';
+
+    if (rawData.vertices?.length) {
+      transformedVertices = await coordinateTransform.transformVertices(rawData.vertices);
+      sourceCRS = transformedVertices[0]?.sourceCRS || 'WGS84';
+    } else {
+      logger.warn('[MBN Service] No vertices found — returning partial result');
+    }
+
+    return this._buildResult(rawData, transformedVertices, sourceCRS);
+  }
+
+  _buildResult(rawData, vertices, sourceCRS) {
+    const result = {
+      plotNo:          rawData.plotNo          || '',
+      surveyCode:      rawData.surveyCode       || '',
+      surveyNumber:    rawData.surveyNumber     || '',
+      villageName:     rawData.villageName      || '',
+      talukaName:      rawData.talukaName       || '',
+      districtName:    rawData.districtName     || '',
+      owners:          rawData.owners           || [],
+      area:            rawData.area             || '',
+      encumbrances:    rawData.encumbrances     || '',
+      plotInfoEntries: rawData.plotInfoEntries  || [],
+      vertices,
+      measurements:    rawData.measurements     || {},
+      rawText:         rawData.rawText          || '',
+      sourceCRS,
+      screenshotPath:  rawData.screenshotPath   || null,
+    };
+
+    logger.info('[MBN Service] Plot details processed', {
+      plotNo:          result.plotNo,
+      vertexCount:     result.vertices.length,
+      plotInfoEntries: result.plotInfoEntries.length,
+      owners:          result.owners?.length ?? 0,
     });
 
-    const data = response.data;
-
-    if (!data?.features?.length) {
-      logger.warn('Mahabhunaksha: no features returned', { districtCode, surveyNo });
-      return null;
-    }
-
-    const feature = data.features[0];
-    const geometry = feature.geometry;
-
-    if (!geometry?.coordinates?.length) {
-      return null;
-    }
-
-    // Convert to flat lat/lng array for Leaflet [[lat,lng],...]
-    const rawCoords = geometry.type === 'MultiPolygon'
-      ? geometry.coordinates[0][0]
-      : geometry.coordinates[0];
-
-    const leafletCoords = rawCoords.map(([lng, lat]) => [lat, lng]);
-
-    // Calculate bounding box and center
-    const lats = leafletCoords.map(c => c[0]);
-    const lngs = leafletCoords.map(c => c[1]);
-    const bbox = [Math.min(...lats), Math.min(...lngs), Math.max(...lats), Math.max(...lngs)];
-    const center = [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2];
-
-    return {
-      coordinates: leafletCoords,
-      bbox,
-      center,
-      properties: feature.properties || {},
-      source: 'mahabhunaksha'
-    };
-
-  } catch (err) {
-    logger.error('Mahabhunaksha fetch failed', { error: err.message, districtCode, surveyNo });
-    return null;
+    return result;
   }
-};
 
-/**
- * Fallback: derive approximate bounding box from Bhuvan WMS GetFeatureInfo.
- * Used when REST query returns no results.
- */
-exports.fetchFromBhuvan = async ({ lat, lng, zoom = 15 }) => {
-  try {
-    // Bhuvan WMTS tile coordinate → approximate parcel bbox
-    const bhuvanUrl = 'https://bhuvan-vec2.nrsc.gov.in/bhuvan/wfs';
-
-    const params = {
-      service: 'WFS',
-      version: '1.0.0',
-      request: 'GetFeature',
-      typeName: 'cadastral:mh_survey',
-      bbox: `${lng - 0.001},${lat - 0.001},${lng + 0.001},${lat + 0.001}`,
-      outputFormat: 'application/json',
-      srsName: 'EPSG:4326',
-    };
-
-    const response = await axios.get(bhuvanUrl, { params, timeout: 10000 });
-    const data = response.data;
-
-    if (!data?.features?.length) return null;
-
-    const feature = data.features[0];
-    const coords = feature.geometry?.coordinates?.[0];
-    if (!coords) return null;
-
-    const leafletCoords = coords.map(([x, y]) => [y, x]);
-    const lats = leafletCoords.map(c => c[0]);
-    const lngs = leafletCoords.map(c => c[1]);
-
-    return {
-      coordinates: leafletCoords,
-      bbox: [Math.min(...lats), Math.min(...lngs), Math.max(...lats), Math.max(...lngs)],
-      center: [(Math.min(...lats) + Math.max(...lats)) / 2, (Math.min(...lngs) + Math.max(...lngs)) / 2],
-      properties: feature.properties || {},
-      source: 'bhuvan'
-    };
-  } catch (err) {
-    logger.warn('Bhuvan WFS fallback failed', { error: err.message });
-    return null;
+  async processScrapeJob(jobData) {
+    return this.getPlotDetails(jobData);
   }
-};
+}
 
-/**
- * Generate a mock polygon for development/testing.
- * Used when both APIs are unavailable.
- */
-exports.getMockPolygon = ({ lat = 20.7002, lng = 77.0082 } = {}) => {
-  const d = 0.002; // ~200m
-  return {
-    coordinates: [
-      [lat + d, lng - d],
-      [lat + d * 0.3, lng + d],
-      [lat - d * 0.5, lng + d * 1.2],
-      [lat - d, lng + d * 0.4],
-      [lat - d * 0.8, lng - d * 0.8],
-      [lat + d * 0.2, lng - d * 1.1],
-      [lat + d, lng - d],
-    ],
-    bbox: [lat - d, lng - d, lat + d, lng + d],
-    center: [lat, lng],
-    properties: { mock: true },
-    source: 'mock'
-  };
-};
+module.exports = new MahabhunakshaService();

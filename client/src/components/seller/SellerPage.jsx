@@ -5,13 +5,34 @@ import PageHeader from '../shared/PageHeader.jsx';
 import StatCard from '../shared/StatCard.jsx';
 import StatusBadge from '../shared/StatusBadge.jsx';
 import SpatialView from '../shared/SpatialView.jsx';
-import { IconLand, IconTransfer, IconShield, IconAlert, IconNotification, IconDocument, IconMap, IconCheck, IconUpload, IconUser, IconBlockchain } from '../icons/Icons.jsx';
+
+import { 
+  IconLand, 
+  IconTransfer, 
+  IconShield, 
+  IconAlert, 
+  IconNotification, 
+  IconDocument, 
+  IconMap, 
+  IconCheck, 
+  IconUpload, 
+  IconUser, 
+  IconBlockchain,
+  IconDownload 
+} from '../icons/Icons.jsx';
+
 import { useAuth } from '../../context/AuthContext.jsx';
 import useApi, { useMutation } from '../../hooks/useApi.js';
-import { landAPI, transferAPI, verificationAPI, notificationAPI, ipfsAPI } from '../../services/api.js';
+import { 
+  landAPI, 
+  transferAPI, 
+  verificationAPI, 
+  notificationAPI, 
+  polygonAPI 
+} from '../../services/api.js';
+
 import locationData from '../../data/maharashtra_full.json';
 
-// Strip leading number codes: "05 अकोला" → "अकोला"
 const cleanName = (name) => name.replace(/^[\d]+\s*/, '').trim();
 
 const EMPTY_CO_OWNER = { name: '', share: '', walletAddress: '' };
@@ -19,44 +40,37 @@ const EMPTY_CO_OWNER = { name: '', share: '', walletAddress: '' };
 const SellerPage = () => {
   useAuth();
 
-  // ── Location data ──────────────────────────────────────────
+  // Location Data
   const districts = useMemo(() =>
     locationData.map(d => ({
       id: d.id,
-      name: cleanName(d.name),
-      rawName: d.name
+      name: cleanName(d.name)
     })).sort((a, b) => a.name.localeCompare(b.name)),
     []);
 
   const getTalukas = useCallback((districtId) => {
     const district = locationData.find(d => d.id === districtId);
-    if (!district) return [];
-    return district.talukas.map(t => ({
-      id: t.id,
-      name: cleanName(t.name),
-      rawName: t.name
-    })).sort((a, b) => a.name.localeCompare(b.name));
+    return district ? district.talukas.map(t => ({ id: t.id, name: cleanName(t.name) })) : [];
   }, []);
 
   const getVillages = useCallback((districtId, talukaId) => {
     const district = locationData.find(d => d.id === districtId);
-    if (!district) return [];
-    const taluka = district.talukas.find(t => t.id === talukaId);
-    if (!taluka) return [];
-    return taluka.villages.map(v => ({
-      id: v.id,
-      name: cleanName(v.name),
-      rawName: v.name
-    })).sort((a, b) => a.name.localeCompare(b.name));
+    const taluka = district?.talukas.find(t => t.id === talukaId);
+    return taluka ? taluka.villages.map(v => ({ id: v.id, name: cleanName(v.name) })) : [];
   }, []);
 
-  // ── API data ───────────────────────────────────────────────
+  // API Data
   const { data: lands, loading: landsLoading, refetch: refetchLands } = useApi(useCallback(() => landAPI.list({ role: 'seller' }), []));
   const { data: transfers, loading: transfersLoading } = useApi(useCallback(() => transferAPI.getMyTransfers(), []));
   const { data: notifications } = useApi(useCallback(() => notificationAPI.getAll(), []));
 
+  // Derived Lists
+  const landsList = Array.isArray(lands) ? lands : [];
+  const transfersList = Array.isArray(transfers) ? transfers : [];
+  const notifList = Array.isArray(notifications) ? notifications : [];
+  const incomingOffers = transfersList.filter(t => t.status === 'pending');
 
-  // ── Registration form ──────────────────────────────────────
+  // Form State
   const [regForm, setRegForm] = useState({
     ownerName: '',
     districtId: '', district: '',
@@ -65,15 +79,36 @@ const SellerPage = () => {
     surveyNumber: '', gatNumber: '',
     area: '', areaUnit: 'hectare',
     encumbrances: '', boundaryDescription: '',
-    coOwners: [],                      // co-owners set at registration time only
+    coOwners: [],
   });
-  
-  // ← ADD THESE TWO LINES HERE
+
   const [registering, setRegistering] = useState(false);
   const [regError, setRegError] = useState(null);
-  
 
+  // Mahabhunaksha States
+  const [fetchingFromMBN, setFetchingFromMBN] = useState(false);
+  const [mbnError, setMbnError] = useState(null);
 
+  // Selected Land
+  const [selectedLandId, setSelectedLandId] = useState(null);
+  const selectedLand = landsList.find(l => l._id === selectedLandId) || null;
+
+  const isVerificationFailed = selectedLand?.status === 'verification_failed';
+
+  const { data: verificationRaw, refetch: refetchVerification } = useApi(
+    useCallback(() => selectedLandId ? verificationAPI.getResult(selectedLandId) : Promise.resolve({ data: null }), [selectedLandId]),
+    [selectedLandId]
+  );
+  const verification = verificationRaw?.result || verificationRaw;
+
+  // Upload State
+  const fileInputRef = useRef(null);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+
+  const coOwnerShareTotal = regForm.coOwners.reduce((sum, c) => sum + (parseFloat(c.share) || 0), 0);
+
+  // Form Handlers
   const handleDistrictChange = (e) => {
     const selected = districts.find(d => d.id === e.target.value);
     setRegForm(p => ({
@@ -108,23 +143,50 @@ const SellerPage = () => {
 
   const handleRegChange = (e) => setRegForm(p => ({ ...p, [e.target.name]: e.target.value }));
 
-  // ── Co-owner inline helpers ────────────────────────────────
-  const addCoOwnerRow = () =>
-    setRegForm(p => ({ ...p, coOwners: [...p.coOwners, { ...EMPTY_CO_OWNER }] }));
-
-  const removeCoOwnerRow = (idx) =>
-    setRegForm(p => ({ ...p, coOwners: p.coOwners.filter((_, i) => i !== idx) }));
-
-  const handleCoOwnerChange = (idx, field, value) =>
+  const addCoOwnerRow = () => setRegForm(p => ({ ...p, coOwners: [...p.coOwners, { ...EMPTY_CO_OWNER }] }));
+  const removeCoOwnerRow = (idx) => setRegForm(p => ({ ...p, coOwners: p.coOwners.filter((_, i) => i !== idx) }));
+  const handleCoOwnerChange = (idx, field, value) => {
     setRegForm(p => {
       const updated = [...p.coOwners];
       updated[idx] = { ...updated[idx], [field]: value };
       return { ...p, coOwners: updated };
     });
+  };
 
-  const coOwnerShareTotal = regForm.coOwners.reduce((sum, c) => sum + (parseFloat(c.share) || 0), 0);
+  // Mahabhunaksha Handler
+  const handleFetchFromMahabhunaksha = async () => {
+    if (!regForm.districtId || !regForm.talukaId || !regForm.villageId || !regForm.surveyNumber) {
+      alert('Please fill District, Taluka, Village and Survey Number first');
+      return;
+    }
 
-  // ── Submit Handler ─────────────────────────────────────────
+    setFetchingFromMBN(true);
+    setMbnError(null);
+
+    try {
+      const payload = {
+        landId: selectedLandId,
+        district: regForm.district,
+        taluka: regForm.taluka,
+        village: regForm.village,
+        surveyNo: regForm.surveyNumber.trim()
+      };
+
+      const response = await polygonAPI.fromMahabhunaksha(payload);
+
+      alert(`Mahabhunaksha Data Fetched!\nPlot No: ${response.data.data.plotNo || '-'}\nSurvey Code: ${response.data.data.surveyCode}`);
+
+      refetchLands();
+      if (response.data.data.polygonId) setSelectedLandId(response.data.data.polygonId);
+    } catch (err) {
+      setMbnError(err.response?.data?.message || err.message || 'Failed to fetch from Mahabhunaksha');
+      alert('Failed to fetch from Mahabhunaksha');
+    } finally {
+      setFetchingFromMBN(false);
+    }
+  };
+
+  // Registration Submit
   const handleRegSubmit = async (e) => {
     e.preventDefault();
 
@@ -152,10 +214,6 @@ const SellerPage = () => {
       mobile: ''
     };
 
-    console.log("=== FRONTEND PAYLOAD ===");
-    console.dir(payload, { depth: null });
-
-    // Validation
     if (!payload.ownerName) return alert('Owner name is required');
     if (!payload.districtValue) return alert('Please select a district');
     if (!payload.talukaValue) return alert('Please select a taluka');
@@ -172,12 +230,10 @@ const SellerPage = () => {
     try {
       alert("Registering land on blockchain...\n\nThis may take 1–4 minutes...\n\nPlease do NOT close this tab.");
 
-      const response = await landAPI.register(payload);
+      await landAPI.register(payload);
 
-      console.log("✅ Registration Success:", response?.data);
       alert('Land registered successfully! Verification is in progress.');
 
-      // Reset form
       setRegForm({
         ownerName: '',
         districtId: '', district: '',
@@ -191,7 +247,7 @@ const SellerPage = () => {
 
       refetchLands();
     } catch (err) {
-      console.error('❌ Registration Error:', err);
+      console.error('Registration Error:', err);
       setRegError(err.response?.data?.message || err.message || 'Registration failed');
       alert(err.response?.data?.message || err.message || 'Registration failed');
     } finally {
@@ -199,38 +255,18 @@ const SellerPage = () => {
     }
   };
 
-  // ── Derived ────────────────────────────────────────────────
-  const landsList = Array.isArray(lands) ? lands : [];
-  const transfersList = Array.isArray(transfers) ? transfers : [];
-  const notifList = Array.isArray(notifications) ? notifications : [];
-  const incomingOffers = transfersList.filter(t => t.status === 'pending');
-
-  // ── Selected land ──────────────────────────────────────────
-  const [selectedLandId, setSelectedLandId] = useState(null);
-  const selectedLand = landsList.find(l => l._id === selectedLandId) || null;
-
-  // Upload is only available when Mahabhumi auto-verification failed
-  const isVerificationFailed = selectedLand?.status === 'verification_failed';
-
-  const { data: verificationRaw, refetch: refetchVerification } = useApi(
-    useCallback(() => selectedLandId ? verificationAPI.getResults(selectedLandId) : Promise.resolve({ data: null }), [selectedLandId]),
-    [selectedLandId], { immediate: !!selectedLandId }
-  );
-  const verification = verificationRaw?.result || verificationRaw;
-
-  // ── File upload (manual proof — only when verification_failed) ──
-  const fileInputRef = useRef(null);
-  const [uploadingDoc, setUploadingDoc] = useState(false);
-  const [uploadError, setUploadError] = useState(null);
-
+  // Document Upload
   const handleDocumentUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || !selectedLandId) return;
+
     setUploadingDoc(true);
     setUploadError(null);
+
     try {
       const land = selectedLand;
       if (!land) throw new Error('Land not found');
+
       const userInput = {
         landId: selectedLandId,
         ownerName: land.owner?.profile?.fullName || 'Seller Name',
@@ -241,14 +277,17 @@ const SellerPage = () => {
         taluka: land.location?.taluka || land.taluka || '',
         village: land.location?.village || land.village || ''
       };
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('userInput', JSON.stringify(userInput));
-      await ipfsAPI.extractAndCompare(formData);
+
+      await verificationAPI.uploadDocument(formData);
+
       await refetchLands();
       await refetchVerification();
+      alert('Document uploaded successfully!');
     } catch (err) {
-      console.error(err);
       setUploadError(err.response?.data?.error || err.message || 'Upload failed');
     } finally {
       setUploadingDoc(false);
@@ -259,7 +298,13 @@ const SellerPage = () => {
   const { execute: acceptOffer } = useMutation(useCallback((id) => transferAPI.accept(id), []));
   const { execute: rejectOffer } = useMutation(useCallback((id) => transferAPI.reject(id), []));
 
-  const BG = { backgroundColor: '#0c0e14', backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(116,117,125,0.04) 1px, transparent 0)', backgroundSize: '32px 32px', color: '#e5e4ed' };
+  const BG = { 
+    backgroundColor: '#0c0e14', 
+    backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(116,117,125,0.04) 1px, transparent 0)', 
+    backgroundSize: '32px 32px', 
+    color: '#e5e4ed' 
+  };
+
   const inputCls = "w-full bg-surface-container-high border-none rounded-lg text-on-surface text-sm h-10 px-3 focus:ring-1 focus:ring-primary/40";
   const labelCls = "text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60";
 
@@ -278,59 +323,60 @@ const SellerPage = () => {
           <StatCard label="Flagged" value={String(landsList.filter(l => ['flagged', 'officer_review'].includes(l.status)).length).padStart(2, '0')} icon={IconAlert} iconColor="error" loading={landsLoading} accentBorder />
         </div>
 
-        {/* Map + Alerts */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="lg:w-[70%] bg-surface-container rounded-xl overflow-hidden flex flex-col h-[500px]">
-            <div className="p-5 flex justify-between items-center border-b border-outline-variant/10">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <IconMap className="text-primary" size={16} />
-                </div>
-                <div>
-                  <h2 className="text-sm font-headline font-bold">Land Boundary Mapping</h2>
-                  <p className="text-[10px] text-on-surface-variant">Spatial validation against government records</p>
-                </div>
+        {/* Land Boundary Mapping - Mahabhunaksha + Bhuvan */}
+        <div className="bg-surface-container rounded-xl overflow-hidden flex flex-col h-[560px]">
+          <div className="p-5 flex justify-between items-center border-b border-outline-variant/10">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <IconMap className="text-primary" size={16} />
+              </div>
+              <div>
+                <h2 className="text-sm font-headline font-bold">Land Boundary Mapping</h2>
+                <p className="text-[10px] text-on-surface-variant">Official boundary from Mahabhunaksha + ISRO Bhuvan</p>
               </div>
             </div>
-            <div className="flex-grow flex items-center justify-center bg-surface-container-low relative">
-              {selectedLandId ? (
-                <SpatialView className="absolute inset-0" landId={selectedLandId} />
-              ) : (
-                <div className="text-center text-on-surface-variant/40">
-                  <IconMap className="mx-auto mb-3 opacity-30" size={48} />
-                  <p className="text-xs">Select a land asset to view boundary polygon</p>
-                </div>
-              )}
-            </div>
+
+            {selectedLandId && (
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await polygonAPI.exportKml(selectedLandId);
+                    const url = window.URL.createObjectURL(new Blob([res.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `plot_${selectedLand?.location?.surveyNumber || 'boundary'}.kml`);
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    alert('KML downloaded successfully!');
+                  } catch (e) {
+                    alert('Failed to download KML');
+                  }
+                }}
+                className="flex items-center gap-2 text-xs px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg transition-colors"
+              >
+                <IconDownload size={16} /> Download KML for Bhuvan
+              </button>
+            )}
           </div>
 
-          <div className="lg:w-[30%] bg-surface-container rounded-xl flex flex-col">
-            <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-2">
-              <IconNotification className="text-on-surface-variant" size={14} />
-              <h2 className="text-sm font-headline font-bold">Recent Alerts</h2>
-            </div>
-            <div className="p-4 space-y-4 flex-grow overflow-y-auto">
-              {notifList.length === 0 && <p className="text-xs text-on-surface-variant/40 text-center py-6">No recent alerts</p>}
-              {notifList.slice(0, 5).map((n, i) => (
-                <div key={n._id || i} className="flex gap-3 items-start">
-                  <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${n.type === 'warning' ? 'bg-error/10' : 'bg-secondary/10'}`}>
-                    {n.type === 'warning' ? <IconAlert className="text-error" size={12} /> : <IconCheck className="text-secondary" size={12} />}
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-on-surface">{n.title || 'Notification'}</p>
-                    <p className="text-[10px] text-on-surface-variant mt-0.5">{n.message}</p>
-                    <p className="text-[9px] text-on-surface-variant/30 mt-1 font-mono">{n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="flex-1 relative">
+            {selectedLandId ? (
+              <SpatialView className="absolute inset-0" landId={selectedLandId} />
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-on-surface-variant/40">
+                <IconMap className="mx-auto mb-6 opacity-30" size={72} />
+                <p className="text-lg">No land selected</p>
+                <p className="text-sm mt-2">Select a registered land from the table below</p>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Registration Form + Verification Panel */}
         <div className="flex flex-col lg:flex-row gap-6">
 
-          {/* ── Registration Form ── */}
+          {/* Registration Form */}
           <div className="lg:w-[70%] bg-surface-container rounded-xl p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -338,24 +384,15 @@ const SellerPage = () => {
               </div>
               <h2 className="text-base font-headline font-bold">Register New Land Asset</h2>
             </div>
+
             {regError && <div className="mb-4 p-3 bg-error/10 border border-error/20 rounded-lg text-error text-xs">{regError}</div>}
+            {mbnError && <div className="mb-4 p-3 bg-error/10 border border-error/20 rounded-lg text-error text-xs">{mbnError}</div>}
 
             <form onSubmit={handleRegSubmit} className="space-y-5">
-
               {/* Owner Name */}
               <div className="space-y-1.5">
-                <label className={labelCls}>
-                  Owner Name{' '}
-                  <span className="text-primary/60 normal-case tracking-normal font-normal">(updates your profile)</span>
-                </label>
-                <input
-                  name="ownerName"
-                  value={regForm.ownerName}
-                  onChange={handleRegChange}
-                  type="text"
-                  className={inputCls}
-                  placeholder="Full legal name of the registering owner"
-                />
+                <label className={labelCls}>Owner Name</label>
+                <input name="ownerName" value={regForm.ownerName} onChange={handleRegChange} className={inputCls} placeholder="Full legal name" />
               </div>
 
               {/* District → Taluka → Village */}
@@ -405,6 +442,20 @@ const SellerPage = () => {
                 ))}
               </div>
 
+              {/* Mahabhunaksha Button */}
+              <button
+                type="button"
+                onClick={handleFetchFromMahabhunaksha}
+                disabled={fetchingFromMBN || !regForm.districtId || !regForm.talukaId || !regForm.villageId || !regForm.surveyNumber}
+                className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold rounded-xl flex items-center justify-center gap-3 disabled:opacity-50"
+              >
+                {fetchingFromMBN ? (
+                  <>Fetching Official Boundary from Mahabhunaksha...</>
+                ) : (
+                  <>Auto-Fetch Exact Plot Boundary from Mahabhunaksha</>
+                )}
+              </button>
+
               {/* Encumbrances + Boundary */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
@@ -425,7 +476,7 @@ const SellerPage = () => {
                 ))}
               </div>
 
-              {/* ── Inline Co-Owners (registration-time only) ── */}
+              {/* Co-Owners */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -436,11 +487,7 @@ const SellerPage = () => {
                       </span>
                     )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={addCoOwnerRow}
-                    className="flex items-center gap-1.5 text-[10px] font-bold text-secondary border border-secondary/20 bg-secondary/5 hover:bg-secondary/15 px-3 py-1.5 rounded-lg transition-all"
-                  >
+                  <button type="button" onClick={addCoOwnerRow} className="flex items-center gap-1.5 text-[10px] font-bold text-secondary border border-secondary/20 bg-secondary/5 hover:bg-secondary/15 px-3 py-1.5 rounded-lg transition-all">
                     <IconUser size={11} /> + Add Co-Owner
                   </button>
                 </div>
@@ -465,12 +512,7 @@ const SellerPage = () => {
                       <label className={labelCls}>Wallet Address</label>
                       <input value={co.walletAddress} onChange={e => handleCoOwnerChange(idx, 'walletAddress', e.target.value)} className={inputCls} placeholder="0x..." />
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => removeCoOwnerRow(idx)}
-                      className="h-10 w-8 flex items-center justify-center rounded-lg text-on-surface-variant/40 hover:text-error hover:bg-error/10 transition-all"
-                      title="Remove"
-                    >✕</button>
+                    <button type="button" onClick={() => removeCoOwnerRow(idx)} className="h-10 w-8 flex items-center justify-center rounded-lg text-on-surface-variant/40 hover:text-error hover:bg-error/10 transition-all" title="Remove">✕</button>
                   </div>
                 ))}
               </div>
@@ -495,7 +537,7 @@ const SellerPage = () => {
             </form>
           </div>
 
-          {/* ── Verification Panel ── */}
+          {/* Verification Panel */}
           <div className="lg:w-[30%] bg-surface-container rounded-xl p-5 flex flex-col">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
@@ -511,29 +553,12 @@ const SellerPage = () => {
               </p>
             ) : (
               <div className="flex flex-col flex-grow gap-5">
-
-                {/* Status context pill */}
-                <div className={`p-3 rounded-lg border text-[10px] leading-relaxed ${isVerificationFailed
-                  ? 'bg-error/8 border-error/20 text-error/80'
-                  : selectedLand?.status === 'verified'
-                    ? 'bg-secondary/8 border-secondary/20 text-secondary/80'
-                    : selectedLand?.status === 'officer_review'
-                      ? 'bg-primary/8 border-primary/20 text-primary/80'
-                      : 'bg-surface-container-high border-outline-variant/10 text-on-surface-variant/60'
-                  }`}>
-                  {isVerificationFailed
-                    ? 'Mahabhumi API could not auto-verify this land. Upload a manual 7/12 document to proceed to officer review.'
-                    : selectedLand?.status === 'verified'
-                      ? 'Verified successfully via Mahabhumi API.'
-                      : selectedLand?.status === 'officer_review'
-                        ? 'Manual proof uploaded. Awaiting officer review.'
-                        : 'Verification in progress via Mahabhumi API…'}
+                <div className={`p-3 rounded-lg border text-[10px] leading-relaxed ${isVerificationFailed ? 'bg-error/8 border-error/20 text-error/80' : selectedLand?.status === 'verified' ? 'bg-secondary/8 border-secondary/20 text-secondary/80' : selectedLand?.status === 'officer_review' ? 'bg-primary/8 border-primary/20 text-primary/80' : 'bg-surface-container-high border-outline-variant/10 text-on-surface-variant/60'}`}>
+                  {isVerificationFailed ? 'Mahabhumi API could not auto-verify this land. Upload a manual 7/12 document.' : selectedLand?.status === 'verified' ? 'Verified successfully via Mahabhumi API.' : selectedLand?.status === 'officer_review' ? 'Manual proof uploaded. Awaiting officer review.' : 'Verification in progress...'}
                 </div>
 
-                {/* Score bars */}
-                {uploadError && (
-                  <div className="p-3 bg-error/10 border border-error/20 rounded-lg text-error text-[10px]">{uploadError}</div>
-                )}
+                {uploadError && <div className="p-3 bg-error/10 border border-error/20 rounded-lg text-error text-[10px]">{uploadError}</div>}
+
                 {[
                   { label: 'Name Match', value: verification?.comparison?.nameMatch?.score ? Math.round(verification.comparison.nameMatch.score * 100) : 0 },
                   { label: 'Area Consistency', value: verification?.comparison?.areaMatch?.score ? Math.round(verification.comparison.areaMatch.score * 100) : 0 },
@@ -543,36 +568,21 @@ const SellerPage = () => {
                       <span>{bar.label}</span><span>{bar.value}%</span>
                     </div>
                     <div className="h-1 w-full bg-surface-container-high rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${bar.value >= 80 ? 'bg-secondary' : bar.value > 50 ? 'bg-primary' : 'bg-error'}`}
-                        style={{ width: `${bar.value}%` }}
-                      />
+                      <div className={`h-full rounded-full transition-all ${bar.value >= 80 ? 'bg-secondary' : bar.value > 50 ? 'bg-primary' : 'bg-error'}`} style={{ width: `${bar.value}%` }} />
                     </div>
                   </div>
                 ))}
 
-                {/* ── Manual upload: ONLY rendered when verification_failed ── */}
                 {isVerificationFailed && (
                   <div className="mt-auto pt-4 border-t border-outline-variant/10 space-y-2">
-                    <p className="text-[10px] text-on-surface-variant/50 font-label uppercase tracking-widest">
-                      Manual Proof (IPFS)
-                    </p>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      style={{ display: 'none' }}
-                      accept="image/*,application/pdf"
-                      onChange={handleDocumentUpload}
-                    />
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadingDoc}
-                      className="w-full py-3 border border-error/30 bg-error/5 hover:bg-error/10 rounded-lg text-error text-xs font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
-                      {uploadingDoc
-                        ? <><div className="w-4 h-4 border-2 border-error border-t-transparent rounded-full animate-spin" /> Uploading & Extracting...</>
-                        : <><IconUpload size={14} /> Upload 7/12 Document</>
-                      }
+                    <p className="text-[10px] text-on-surface-variant/50 font-label uppercase tracking-widest">Manual Proof (IPFS)</p>
+                    <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*,application/pdf" onChange={handleDocumentUpload} />
+                    <button onClick={() => fileInputRef.current?.click()} disabled={uploadingDoc} className="w-full py-3 border border-error/30 bg-error/5 hover:bg-error/10 rounded-lg text-error text-xs font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                      {uploadingDoc ? (
+                        <>Uploading & Extracting...</>
+                      ) : (
+                        <><IconUpload size={14} /> Upload 7/12 Document</>
+                      )}
                     </button>
                   </div>
                 )}
@@ -606,20 +616,14 @@ const SellerPage = () => {
                   ) : landsList.length === 0 ? (
                     <tr><td colSpan={5} className="px-5 py-8 text-center text-on-surface-variant/40 text-xs">No lands registered yet</td></tr>
                   ) : landsList.map(l => (
-                    <tr
-                      key={l._id}
-                      className={`hover:bg-surface-container-high/30 transition-colors cursor-pointer ${selectedLandId === l._id ? 'bg-primary/5' : ''}`}
-                      onClick={() => setSelectedLandId(l._id)}
-                    >
+                    <tr key={l._id} className={`hover:bg-surface-container-high/30 transition-colors cursor-pointer ${selectedLandId === l._id ? 'bg-primary/5' : ''}`} onClick={() => setSelectedLandId(l._id)}>
                       <td className="px-5 py-3 font-mono text-xs">{l.location?.surveyNumber || l.surveyNumber}</td>
                       <td className="px-5 py-3 text-xs">{l.location?.village || l.village}</td>
                       <td className="px-5 py-3 text-xs">{l.area?.value || l.area} {l.area?.unit || 'HA'}</td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2">
                           <StatusBadge status={l.status} />
-                          {l.status === 'verification_failed' && (
-                            <span className="text-[9px] text-error/60 font-mono animate-pulse">↑ select to upload proof</span>
-                          )}
+                          {l.status === 'verification_failed' && <span className="text-[9px] text-error/60 font-mono animate-pulse">↑ select to upload proof</span>}
                         </div>
                       </td>
                       <td className="px-5 py-3 text-right">

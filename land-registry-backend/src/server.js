@@ -26,18 +26,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // ── API v1 Routes ──────────────────────────────────────────────────
-app.use('/api/v1/auth', require('./api/v1/routes/auth.routes'));
-app.use('/api/v1/profile', require('./api/v1/routes/profile.routes'));
-app.use('/api/v1/land', require('./api/v1/routes/land.routes'));
-app.use('/api/v1/ipfs', require('./api/v1/routes/ipfs.routes'));
-app.use('/api/v1/verification', require('./api/v1/routes/verification.routes'));
-app.use('/api/v1/officer', require('./api/v1/routes/officer.routes'));
-app.use('/api/v1/transfer', require('./api/v1/routes/transfer.routes'));
-app.use('/api/v1/escrow', require('./api/v1/routes/escrow.routes'));
-app.use('/api/v1/notifications', require('./api/v1/routes/notification.routes'));
-app.use('/api/v1/webhook', require('./api/v1/routes/webhook.routes'));
-app.use('/api/v1/spatial', require('./api/v1/routes/spatial.routes'));
-
+app.use('/api/v1', require('./api/v1/index.js'));
 // ── 404 Handler ────────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({ success: false, error: `Route not found: ${req.method} ${req.originalUrl}` });

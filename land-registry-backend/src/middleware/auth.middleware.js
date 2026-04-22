@@ -41,6 +41,8 @@ const authenticate = async (req, res, next) => {
       });
     }
 
+   console.log('Bearer ' + token);
+
     req.user = user;
     req.userId = user._id;
     next();

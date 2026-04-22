@@ -1,5 +1,6 @@
-import axios from 'axios';
-import logger from './logger.js';
+// src/utils/translateToMarathi.js
+const axios = require('axios');
+const logger = require('./logger.js');
 
 const SURNAME_CORRECTIONS = {
   'pillai': 'पिल्लई',
@@ -27,7 +28,6 @@ const SURNAME_CORRECTIONS = {
   'kadam': 'कदम',
   'salve': 'साळवे',
   'mane': 'माने',
-  'More': 'मोरे',
   'more': 'मोरे',
   'bhosale': 'भोसले',
   'gaikwad': 'गायकवाड',
@@ -81,13 +81,18 @@ const fixSurnames = (english, devanagari) => {
   }).join(' ');
 };
 
-export const translateToMarathi = async (text) => {
+/**
+ * Transliterate English name to Marathi (Devanagari)
+ * @param {string} text - English name to translate
+ * @returns {Promise<string>} Marathi name
+ */
+const translateToMarathi = async (text) => {
   if (!text || typeof text !== 'string') return '';
 
   const trimmed = text.trim();
   if (!trimmed) return '';
 
-  // Already Devanagari — return as-is
+  // If already contains Devanagari characters, return as-is
   const hasDevanagari = /[\u0900-\u097F]/.test(trimmed);
   if (hasDevanagari) return trimmed;
 
@@ -95,23 +100,29 @@ export const translateToMarathi = async (text) => {
     const url = `https://inputtools.google.com/request?text=${encodeURIComponent(trimmed)}&itc=mr-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8`;
 
     const res = await axios.get(url, { timeout: 8000 });
+
     const transliterated = res.data?.[1]?.[0]?.[1]?.[0];
 
     if (transliterated) {
-      const fixed = fixDevanagari(transliterated.trim());
-      const schwaFixed = fixSchwaPerWord(trimmed, fixed);
-      const finalFixed = fixSurnames(trimmed, schwaFixed);
-      return finalFixed;
+      let fixed = fixDevanagari(transliterated.trim());
+      fixed = fixSchwaPerWord(trimmed, fixed);
+      fixed = fixSurnames(trimmed, fixed);
+      return fixed;
     }
 
-    logger.warn('Input Tools returned no result', { text: trimmed });
+    logger.warn('Google Input Tools returned no result', { text: trimmed });
     return trimmed;
 
   } catch (err) {
-    logger.error('Transliteration failed', { error: err.message });
-    return trimmed;
+    logger.error('Transliteration failed', { text: trimmed, error: err.message });
+    return trimmed; // graceful fallback
   }
 };
 
-const mrName = await translateToMarathi("jaganath shirsat");
-console.log('Translated name:', mrName);
+module.exports = {
+  translateToMarathi,
+  // Optional: Export helpers for testing
+  fixDevanagari,
+  fixSchwaPerWord,
+  fixSurnames
+};

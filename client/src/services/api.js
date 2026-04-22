@@ -4,7 +4,7 @@ const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1'
 
 const api = axios.create({
   baseURL: API_BASE,
-  timeout: 15000,
+  timeout: 180000,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -64,9 +64,12 @@ export const coOwnerAPI = {
 
 /* ── Polygon (nested under /land) ────────────────── */
 export const polygonAPI = {
-  save:     (landId, data) => api.post(`/land/${landId}/polygon`, data),
-  get:      (landId)       => api.get(`/land/${landId}/polygon`),
-  validate: (landId)       => api.post(`/land/${landId}/polygon/validate`),
+  save:              (landId, data) => api.post(`/polygon/${landId}/polygon`, data),
+  get:               (landId)       => api.get(`/polygon/${landId}/polygon`),
+  validate:          (landId)       => api.post(`/polygon/${landId}/polygon/validate`),
+  fromMahabhunaksha: (data)         => api.post('/polygon/from-mahabhunaksha', data),
+  getBhuvanPreview:  (landId)       => api.get(`/polygon/${landId}/bhuvan-preview`),
+  exportKml:         (landId)       => api.get(`/polygon/${landId}/export/kml`, { responseType: 'blob' }),
 };
 
 /* ── Transfer ────────────────────────────────────── */
@@ -93,8 +96,8 @@ export const ipfsAPI = {
 
 /* ── Verification ────────────────────────────────── */
 export const verificationAPI = {
-  getResults: (landId) => api.get(`/verification/${landId}`),
-  trigger:    (landId) => api.post(`/verification/${landId}/trigger`),
+  getResult: (landId) => api.get(`/verification/${landId}/result`),
+  trigger:    (landId) => api.post(`/verification/${landId}/ready`),
 };
 
 /* ── Officer ─────────────────────────────────────── */
