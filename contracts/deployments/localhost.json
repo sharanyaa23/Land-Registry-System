@@ -1,0 +1,10 @@
+{
+  "network": "localhost",
+  "chainId": "31337",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "deployedAt": "2026-04-25T02:17:51.689Z",
+  "contracts": {
+    "LandRegistry": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+    "MultiSigTransfer": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+  }
+}

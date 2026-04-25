@@ -1,3 +1,11 @@
+/**
+ * @file ipfs.js
+ * @description This configuration file sets up environment variables, database connections, and external service credentials.
+ * 
+ * NOTE: This file is essential for the backend architecture. 
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
 const axios = require('axios');
 const FormData = require('form-data');
 const { PINATA_KEY, PINATA_SECRET } = require('./index');

@@ -1,3 +1,11 @@
+/**
+ * @file coordinateTransform.service.js
+ * @description This service handles complex external integrations, background tasks, or specific business operations separate from the controller.
+ * 
+ * NOTE: This file is essential for the backend architecture. 
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
 // src/services/spatial/coordinateTransform.service.js
 const proj4 = require('proj4');
 const logger = require('../../utils/logger');

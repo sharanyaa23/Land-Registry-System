@@ -1,4 +1,12 @@
 /**
+ * @file rateLimit.middleware.js
+ * @description This middleware intercepts requests to perform checks like authentication, role verification, or rate limiting before reaching the controller.
+ * 
+ * NOTE: This file is essential for the backend architecture. 
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
+/**
  * Simple in-memory rate limiter.
  * For production, switch to Redis-based rate limiting.
  */
@@ -62,8 +70,8 @@ const rateLimit = (options = {}) => {
 };
 
 // Pre-configured limiters
-const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: 'Too many auth attempts' });
+const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 9999 });
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 9999, message: 'Too many auth attempts' });
 const uploadLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, message: 'Too many uploads' });
 
 module.exports = { rateLimit, apiLimiter, authLimiter, uploadLimiter };

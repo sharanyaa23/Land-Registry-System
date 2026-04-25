@@ -1,3 +1,11 @@
+/**
+ * @file VerificationResult.model.js
+ * @description This model defines the MongoDB schema and database structure for the application.
+ * 
+ * NOTE: This file is essential for the backend architecture. 
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
 // src/models/VerificationResult.model.js  (or wherever VerificationResult is defined)
 const mongoose = require('mongoose');
 const { Schema } = mongoose;

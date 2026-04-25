@@ -1,3 +1,11 @@
+/**
+ * @file mahabhunaksha.worker.js
+ * @description This file defines background jobs and schedulers for asynchronous operations.
+ * 
+ * NOTE: This file is essential for the backend architecture. 
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
 // src/jobs/workers/mahabhunaksha.worker.js
 const Queue = require('bull');                    // or your preferred queue (Bull, Bee-Queue, etc.)
 const mahabhunakshaService = require('../../services/spatial/mahabhunaksha.service');

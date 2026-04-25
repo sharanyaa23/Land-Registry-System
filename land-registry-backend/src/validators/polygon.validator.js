@@ -1,3 +1,11 @@
+/**
+ * @file polygon.validator.js
+ * @description This validator defines the request payload validation schemas to ensure data integrity.
+ * 
+ * NOTE: This file is essential for the backend architecture. 
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
 // src/validators/polygon.validator.js
 const Joi = require('joi');
 

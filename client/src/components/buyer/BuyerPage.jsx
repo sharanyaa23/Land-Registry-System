@@ -9,12 +9,13 @@ import SpatialView from '../shared/SpatialView.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import useApi, { useMutation } from '../../hooks/useApi.js';
 import { landAPI, transferAPI, notificationAPI } from '../../services/api.js';
+import { useCryptoPrice } from '../../hooks/useCryptoPrice.js';
 
 const BG = { backgroundColor: '#0c0e14', backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(116,117,125,0.04) 1px, transparent 0)', backgroundSize: '32px 32px', color: '#e5e4ed' };
 const truncAddr = (a) => a ? `${a.slice(0, 6)}...${a.slice(-4)}` : '\u2014';
 
 const BuyerPage = () => {
-  useAuth(); // ensure auth context is available
+  const { user } = useAuth(); // ensure auth context is available
 
   // State declarations must come first
   const [searchForm, setSearchForm] = useState({ village: '', surveyNumber: '', status: '' });
@@ -37,6 +38,10 @@ const BuyerPage = () => {
 
   // Filter available lands based on search criteria (default shows all)
   const filteredLands = availableLandsList.filter(land => {
+    // Exclude own lands
+    const ownerId = typeof land.owner === 'object' ? land.owner?._id : land.owner;
+    if (ownerId && user?._id && ownerId.toString() === user._id.toString()) return false;
+
     const villageMatch = !searchForm.village || 
       (land.location?.village || land.village || '').toLowerCase().includes(searchForm.village.toLowerCase());
     const surveyMatch = !searchForm.surveyNumber || 
@@ -92,31 +97,80 @@ const BuyerPage = () => {
 
   
   const { execute: createOffer, loading: offerLoading } = useMutation(useCallback((d) => transferAPI.createOffer(d), []));
+  const [isEscrowing, setIsEscrowing] = useState(false);
+  const { convertToINR } = useCryptoPrice();
+
   const handleTransfer = async () => { 
-  if (!selectedParcel) {
-    console.log('No parcel selected');
-    return;
-  }
-  console.log('Initiating transfer for land:', selectedParcel._id);
-  try { 
-    await createOffer({ 
-      landId: selectedParcel._id,
-      price: 1000, // Default price for testing
-      currency: 'POL' 
-    }); 
-    alert('Transfer request sent!');
-    console.log('Transfer request successful');
-    // Automatically refresh both transfers and available lands lists
-    await refetchTransfers();
-    await refetchAvailableLands();
-    // Clear selected parcel and go back to list view
-    setSelectedParcel(null);
-    setViewMode('list');
-  } catch (error) {
-    console.error('Transfer failed:', error);
-    alert('Transfer failed: ' + (error.response?.data?.error || error.message));
-  } 
-};
+    if (!selectedParcel) {
+      console.log('No parcel selected');
+      return;
+    }
+    
+    if (!window.ethereum) {
+      alert("MetaMask is required to send escrow funds.");
+      return;
+    }
+
+    setIsEscrowing(true);
+    console.log('Initiating transfer for land:', selectedParcel._id);
+    
+    try { 
+      // 1. Fetch Contract ABIs
+      const { data: abiRes } = await landAPI.getContracts(); // using landAPI or generic api
+      const multisigConfig = abiRes.contracts.MultiSigTransfer;
+      if (!multisigConfig) throw new Error("MultiSigTransfer contract not found.");
+
+      // 2. Create the offer in MongoDB to get the transfer ID
+      const defaultPrice = "1000"; // Default POL price for testing
+      const res = await createOffer({ 
+        landId: selectedParcel._id,
+        price: Number(defaultPrice),
+        currency: 'POL' 
+      }); 
+      const transferId = res.data?.data?._id || res.data?._id;
+      if (!transferId) throw new Error("Failed to create offer on backend.");
+
+      // 3. Connect to MetaMask
+      alert("Please confirm the escrow deposit in MetaMask.");
+      const { BrowserProvider, Contract, keccak256, toUtf8Bytes, parseEther } = await import('ethers');
+      const provider = new BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+
+      const multisigContract = new Contract(multisigConfig.address, multisigConfig.abi, signer);
+      
+      const landIdHex = "0x" + selectedParcel._id.padEnd(64, '0'); // Assuming landId is hex
+      const offChainRef = keccak256(toUtf8Bytes(transferId));
+      const valueInWei = parseEther(defaultPrice);
+
+      // 4. Send the transaction with msg.value
+      const tx = await multisigContract.proposeTransfer(
+        landIdHex, 
+        await signer.getAddress(), 
+        valueInWei, 
+        offChainRef, 
+        { value: valueInWei }
+      );
+      
+      alert(`Transaction sent! Waiting for confirmation...\nTxHash: ${tx.hash}`);
+      await tx.wait();
+
+      alert('Escrow deposited and transfer request sent!');
+      console.log('Transfer request successful');
+      
+      // Automatically refresh both transfers and available lands lists
+      await refetchTransfers();
+      await refetchAvailableLands();
+      
+      // Clear selected parcel and go back to list view
+      setSelectedParcel(null);
+      setViewMode('list');
+    } catch (error) {
+      console.error('Transfer failed:', error);
+      alert('Transfer failed: ' + (error.response?.data?.error || error.reason || error.message));
+    } finally {
+      setIsEscrowing(false);
+    }
+  };
 
   const activeTransfers = transfersList.filter(t => !['completed', 'rejected'].includes(t.status)).length;
   const pendingTransfers = transfersList.filter(t => t.status === 'pending').length;
@@ -196,7 +250,7 @@ const BuyerPage = () => {
                       <div key={land._id} className="bg-surface-container-high rounded-lg p-3 flex items-center justify-between hover:bg-surface-container-highest transition-colors">
                         <div className="flex-1">
                           <p className="font-bold text-xs">{land.location?.surveyNumber || land.surveyNumber}</p>
-                          <p className="text-[10px] text-on-surface-variant">{land.location?.village || land.village} \u2014 {land.area?.value || land.area} {land.area?.unit || 'HA'}</p>
+                          <p className="text-[10px] text-on-surface-variant">{land.location?.village || land.village} \u2014 {typeof land.area === 'object' ? land.area?.value : land.area} {land.area?.unit || 'HA'}</p>
                         </div>
                         <button 
                           onClick={() => handleViewLandDetails(land)}
@@ -266,7 +320,7 @@ const BuyerPage = () => {
                       </div>
                       <div className="flex justify-between py-2 border-b border-outline-variant/10">
                         <span className="text-on-surface-variant text-xs">Area</span>
-                        <span className="font-bold text-xs">{selectedParcel.area?.value || selectedParcel.area} {selectedParcel.area?.unit || 'HA'}</span>
+                        <span className="font-bold text-xs">{typeof selectedParcel.area === 'object' ? selectedParcel.area?.value : selectedParcel.area} {selectedParcel.area?.unit || 'HA'}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b border-outline-variant/10">
                         <span className="text-on-surface-variant text-xs">District</span>
@@ -284,8 +338,8 @@ const BuyerPage = () => {
                     
                     <div className="flex gap-3">
                       <button className="flex-1 h-10 bg-surface-container-high border border-outline-variant/20 text-on-surface text-xs font-bold rounded-lg hover:bg-surface-container-highest transition-all uppercase tracking-wider">History</button>
-                      <button onClick={handleTransfer} disabled={offerLoading} className="flex-[2] h-10 bg-primary/15 hover:bg-primary/25 border border-primary/20 text-primary text-xs font-bold rounded-lg transition-all disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-2">
-                        {offerLoading ? 'Sending...' : 'Initiate Transfer'} <IconChevron size={12} />
+                      <button onClick={handleTransfer} disabled={offerLoading || isEscrowing} className="flex-[2] h-10 bg-primary/15 hover:bg-primary/25 border border-primary/20 text-primary text-xs font-bold rounded-lg transition-all disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-2">
+                        {isEscrowing ? 'Confirm in Wallet...' : offerLoading ? 'Sending...' : 'Initiate Transfer (Escrow POL)'} <IconChevron size={12} />
                       </button>
                     </div>
                   </div>
@@ -316,7 +370,7 @@ const BuyerPage = () => {
                     <tr key={l._id} className="hover:bg-surface-container-high/30 transition-colors">
                       <td className="px-5 py-3 font-bold">{l.location?.surveyNumber || l.surveyNumber}</td>
                       <td className="px-5 py-3 text-on-surface-variant">{l.location?.village || l.village}</td>
-                      <td className="px-5 py-3">{l.area?.value || l.area} {l.area?.unit || 'HA'}</td>
+                      <td className="px-5 py-3">{typeof l.area === 'object' ? l.area?.value : l.area} {l.area?.unit || 'HA'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -342,7 +396,16 @@ const BuyerPage = () => {
                   : transfersList.map(t => (
                     <tr key={t._id} className="hover:bg-surface-container-high/30 transition-colors">
                       <td className="px-5 py-3">{t.seller?.profile?.fullName || truncAddr(t.seller?.walletAddress) || 'Unknown'}</td>
-                      <td className="px-5 py-3 font-bold">{t.price?.amount ? `${t.price.amount} ${t.price.currency || 'POL'}` : '\u2014'}</td>
+                      <td className="px-5 py-3 font-bold">
+                        {t.price?.amount ? (
+                          <span className="flex items-center gap-1.5">
+                            {t.price.amount} {t.price.currency || 'POL'} 
+                            <span className="text-[10px] text-on-surface-variant font-mono bg-surface-variant/20 px-1.5 py-0.5 rounded-sm">
+                              {convertToINR(t.price.amount) || '...'}
+                            </span>
+                          </span>
+                        ) : '\u2014'}
+                      </td>
                       <td className="px-5 py-3"><StatusBadge status={t.status} /></td>
                     </tr>
                   ))}

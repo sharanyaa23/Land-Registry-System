@@ -1,3 +1,11 @@
+/**
+ * @file translateToMarathi.js
+ * @description This utility file contains reusable helper functions used across the application.
+ * 
+ * NOTE: This file is essential for the backend architecture. 
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
 // src/utils/translateToMarathi.js
 const axios = require('axios');
 const logger = require('./logger.js');

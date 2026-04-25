@@ -1,3 +1,11 @@
+/**
+ * @file officer.validator.js
+ * @description This validator defines the request payload validation schemas to ensure data integrity.
+ * 
+ * NOTE: This file is essential for the backend architecture. 
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
 const Joi = require('joi');
 
 // POST /officer/cases/:id/approve

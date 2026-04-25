@@ -1,3 +1,24 @@
+/**
+ * @file land.controller.js
+ * @description Handles all land asset CRUD operations — registration, listing, searching, and updates.
+ *
+ *              LAND REGISTRATION FLOW:
+ *              1. Seller fills the registration form (auto-filled by OCR or manually)
+ *              2. POST /land/register creates a new Land document in MongoDB with status 'draft'
+ *              3. The frontend then calls the LandRegistry smart contract's registerLand() function
+ *                 via MetaMask to record the land on the Polygon blockchain
+ *              4. The land status progresses through: draft → documents_uploaded → verification_pending
+ *                 → verification_passed (or officer_review if OCR fails) → registered → listed
+ *              5. Once 'registered', the land appears on the Buyer Dashboard for purchase
+ *
+ *              SEARCH & PAGINATION:
+ *              - GET /land/search supports filtering by district, taluka, village, status
+ *              - Uses cursor-based pagination via the paginateQuery utility
+ *
+ * NOTE: This file is essential for the backend architecture.
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
 const asyncHandler = require('../utils/asyncHandler');
 const Land = require('../models/Land.model');
 const CoOwner = require('../models/CoOwner.model');
@@ -33,7 +54,7 @@ const marathiName = {
 };
 
 
-const INTERNAL_API_BASE = process.env.INTERNAL_API_BASE || 'http://localhost:5000/api/v1';
+const INTERNAL_API_BASE = process.env.INTERNAL_API_BASE || 'http://localhost:5001/api/v1';
 
 const VERDICT_TO_STATUS = {
   auto_pass: 'registered',

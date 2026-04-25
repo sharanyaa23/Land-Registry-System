@@ -23,13 +23,15 @@ import {
 
 import { useAuth } from '../../context/AuthContext.jsx';
 import useApi, { useMutation } from '../../hooks/useApi.js';
-import { 
+import api, { 
   landAPI, 
   transferAPI, 
   verificationAPI, 
   notificationAPI, 
-  polygonAPI 
+  polygonAPI,
+  documentAPI 
 } from '../../services/api.js';
+import { BrowserProvider, Contract, keccak256, toUtf8Bytes } from 'ethers';
 
 import locationData from '../../data/maharashtra_full.json';
 
@@ -38,7 +40,7 @@ const cleanName = (name) => name.replace(/^[\d]+\s*/, '').trim();
 const EMPTY_CO_OWNER = { name: '', share: '', walletAddress: '' };
 
 const SellerPage = () => {
-  useAuth();
+  const { user } = useAuth();
 
   // Location Data
   const districts = useMemo(() =>
@@ -61,18 +63,18 @@ const SellerPage = () => {
 
   // API Data
   const { data: lands, loading: landsLoading, refetch: refetchLands } = useApi(useCallback(() => landAPI.list({ role: 'seller' }), []));
-  const { data: transfers, loading: transfersLoading } = useApi(useCallback(() => transferAPI.getMyTransfers(), []));
+  const { data: transfers, loading: transfersLoading, refetch: refetchTransfers } = useApi(useCallback(() => transferAPI.getMyTransfers(), []));
   const { data: notifications } = useApi(useCallback(() => notificationAPI.getAll(), []));
 
   // Derived Lists
   const landsList = Array.isArray(lands) ? lands : [];
   const transfersList = Array.isArray(transfers) ? transfers : [];
   const notifList = Array.isArray(notifications) ? notifications : [];
-  const incomingOffers = transfersList.filter(t => t.status === 'pending');
+  const incomingOffers = transfersList.filter(t => t.status === 'offer_sent');
 
   // Form State
   const [regForm, setRegForm] = useState({
-    ownerName: '',
+    ownerName: user?.profile?.fullName || '',
     districtId: '', district: '',
     talukaId: '', taluka: '',
     villageId: '', village: '',
@@ -105,6 +107,69 @@ const SellerPage = () => {
   const fileInputRef = useRef(null);
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const [uploadError, setUploadError] = useState(null);
+
+  // OCR Upload State
+  const ocrInputRef = useRef(null);
+  const [isOcrLoading, setIsOcrLoading] = useState(false);
+
+  const handleOCRUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsOcrLoading(true);
+    const formData = new FormData();
+    formData.append('document', file);
+    // If a land is already selected, send the landId so the backend can auto-escalate on low confidence
+    if (selectedLandId) formData.append('landId', selectedLandId);
+
+    try {
+      const res = await documentAPI.ocr712(formData);
+      if (res.data?.success && res.data?.data) {
+        const { district, taluka, village, surveyNumber, area, confidence, escalated } = res.data.data;
+        
+        // Find matching district
+        const distMatch = districts.find(d => d.name.toLowerCase() === district.toLowerCase());
+        const distId = distMatch ? distMatch.id : '';
+
+        // Find matching taluka
+        const talukas = getTalukas(distId);
+        const talMatch = talukas.find(t => t.name.toLowerCase() === taluka.toLowerCase());
+        const talId = talMatch ? talMatch.id : '';
+
+        // Find matching village
+        const villages = getVillages(distId, talId);
+        const vilMatch = villages.find(v => v.name.toLowerCase() === village.toLowerCase());
+        const vilId = vilMatch ? vilMatch.id : '';
+
+        setRegForm(p => ({
+          ...p,
+          districtId: distId,
+          district: distMatch ? distMatch.name : district,
+          talukaId: talId,
+          taluka: talMatch ? talMatch.name : taluka,
+          villageId: vilId,
+          village: vilMatch ? vilMatch.name : village,
+          surveyNumber: surveyNumber || p.surveyNumber,
+          area: area || p.area
+        }));
+
+        // Show confidence-aware feedback
+        if (confidence >= 60) {
+          alert(`✅ OCR Verified (${confidence}% confidence)\nForm auto-filled successfully!`);
+        } else if (escalated) {
+          alert(`⚠️ OCR Low Confidence (${confidence}%)\nForm partially filled. This document has been escalated to an officer for manual verification.`);
+        } else {
+          alert(`⚠️ OCR Low Confidence (${confidence}%)\nForm partially filled. Please verify the data manually.`);
+        }
+      }
+    } catch (err) {
+      console.error('OCR failed:', err);
+      alert('OCR Failed: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setIsOcrLoading(false);
+      if (ocrInputRef.current) ocrInputRef.current.value = '';
+    }
+  };
 
   const coOwnerShareTotal = regForm.coOwners.reduce((sum, c) => sum + (parseFloat(c.share) || 0), 0);
 
@@ -165,11 +230,11 @@ const SellerPage = () => {
 
     try {
       const payload = {
-        landId: selectedLandId,
         district: regForm.district,
         taluka: regForm.taluka,
         village: regForm.village,
-        surveyNo: regForm.surveyNumber.trim()
+        surveyNo: regForm.surveyNumber.trim(),
+        ...(selectedLandId ? { landId: selectedLandId } : { ownerName: regForm.ownerName.trim() || 'Owner' }),
       };
 
       const response = await polygonAPI.fromMahabhunaksha(payload);
@@ -179,8 +244,9 @@ const SellerPage = () => {
       refetchLands();
       if (response.data.data.polygonId) setSelectedLandId(response.data.data.polygonId);
     } catch (err) {
-      setMbnError(err.response?.data?.message || err.message || 'Failed to fetch from Mahabhunaksha');
-      alert('Failed to fetch from Mahabhunaksha');
+      const errMsg = err.response?.data?.details || err.response?.data?.error || err.message || 'Failed to fetch from Mahabhunaksha';
+      setMbnError(`Scraping Error: ${errMsg}`);
+      alert(`Mahabhunaksha Error: ${errMsg}`);
     } finally {
       setFetchingFromMBN(false);
     }
@@ -224,16 +290,41 @@ const SellerPage = () => {
     if (coOwnerShareTotal > 100)
       return alert(`Co-owner shares total ${coOwnerShareTotal}% — must be ≤ 100%`);
 
+    if (!window.ethereum) return alert('MetaMask is required to register land on-chain.');
+
     setRegistering(true);
     setRegError(null);
 
     try {
-      alert("Registering land on blockchain...\n\nThis may take 1–4 minutes...\n\nPlease do NOT close this tab.");
+      // 1. Fetch Contract ABIs
+      const { data: abiRes } = await api.get('/contracts');
+      const registryConfig = abiRes.contracts.LandRegistry;
+      if (!registryConfig) throw new Error("Smart contracts not deployed yet. Please run deployment scripts.");
 
-      await landAPI.register(payload);
+      alert("Registering land on blockchain...\n\nPlease confirm the transaction in MetaMask.");
 
-      alert('Land registered successfully! Verification is in progress.');
+      // 2. Register on backend (creates draft)
+      const res = await landAPI.register(payload);
+      const landId = res.data?.land?._id || res.data?.data?._id || selectedLandId;
+      if (!landId) throw new Error("Failed to get Land ID from backend.");
 
+      const ipfsCID = res.data?.land?.documents?.polygonGeoJsonCID || "pending";
+      const landIdHash = keccak256(toUtf8Bytes(landId.toString()));
+
+      // 3. Initiate On-Chain Transaction
+      const provider = new BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const registryContract = new Contract(registryConfig.address, registryConfig.abi, signer);
+
+      const tx = await registryContract.registerLand(landIdHash, ipfsCID);
+      console.log("Transaction sent:", tx.hash);
+
+      // Wait for 1 confirmation
+      await tx.wait(1);
+      alert(`Land registered on blockchain successfully!\nTx Hash: ${tx.hash}`);
+
+      // 4. Update backend with txHash (optional API call, assume backend will sync via events eventually)
+      
       setRegForm({
         ownerName: '',
         districtId: '', district: '',
@@ -248,8 +339,14 @@ const SellerPage = () => {
       refetchLands();
     } catch (err) {
       console.error('Registration Error:', err);
-      setRegError(err.response?.data?.message || err.message || 'Registration failed');
-      alert(err.response?.data?.message || err.message || 'Registration failed');
+      // Handle user rejection (MetaMask code 4001)
+      if (err.code === 4001 || err.code === 'ACTION_REJECTED') {
+        alert("Transaction was cancelled by the user.");
+        setRegError("Transaction cancelled.");
+      } else {
+        setRegError(err.response?.data?.message || err.message || 'Registration failed');
+        alert(err.response?.data?.message || err.message || 'Registration failed');
+      }
     } finally {
       setRegistering(false);
     }
@@ -295,8 +392,28 @@ const SellerPage = () => {
     }
   };
 
-  const { execute: acceptOffer } = useMutation(useCallback((id) => transferAPI.accept(id), []));
-  const { execute: rejectOffer } = useMutation(useCallback((id) => transferAPI.reject(id), []));
+  const { execute: acceptOfferApi } = useMutation(useCallback((id) => transferAPI.accept(id), []));
+  const { execute: rejectOfferApi } = useMutation(useCallback((id) => transferAPI.reject(id), []));
+
+  const handleAcceptOffer = async (id) => {
+    try {
+      await acceptOfferApi(id);
+      alert('Offer accepted successfully');
+      refetchTransfers();
+    } catch (err) {
+      alert(err || 'Failed to accept offer');
+    }
+  };
+
+  const handleRejectOffer = async (id) => {
+    try {
+      await rejectOfferApi(id);
+      alert('Offer rejected');
+      refetchTransfers();
+    } catch (err) {
+      alert(err || 'Failed to reject offer');
+    }
+  };
 
   const BG = { 
     backgroundColor: '#0c0e14', 
@@ -318,9 +435,9 @@ const SellerPage = () => {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Lands Registered" value={String(landsList.length).padStart(2, '0')} icon={IconLand} iconColor="primary" loading={landsLoading} accentBorder />
-          <StatCard label="Pending Transfers" value={String(transfersList.filter(t => ['pending', 'in_review'].includes(t.status)).length).padStart(2, '0')} icon={IconTransfer} iconColor="secondary" loading={transfersLoading} accentBorder />
-          <StatCard label="Verified" value={String(landsList.filter(l => l.status === 'verified').length).padStart(2, '0')} icon={IconShield} iconColor="green-500" loading={landsLoading} accentBorder />
-          <StatCard label="Flagged" value={String(landsList.filter(l => ['flagged', 'officer_review'].includes(l.status)).length).padStart(2, '0')} icon={IconAlert} iconColor="error" loading={landsLoading} accentBorder />
+          <StatCard label="Pending Transfers" value={String(transfersList.filter(t => ['offer_sent', 'coowner_consent_pending', 'officer_review'].includes(t.status)).length).padStart(2, '0')} icon={IconTransfer} iconColor="secondary" loading={transfersLoading} accentBorder />
+          <StatCard label="Verified" value={String(landsList.filter(l => ['verification_passed', 'registered', 'listed'].includes(l.status)).length).padStart(2, '0')} icon={IconShield} iconColor="green-500" loading={landsLoading} accentBorder />
+          <StatCard label="Flagged" value={String(landsList.filter(l => ['verification_failed', 'officer_review'].includes(l.status)).length).padStart(2, '0')} icon={IconAlert} iconColor="error" loading={landsLoading} accentBorder />
         </div>
 
         {/* Land Boundary Mapping - Mahabhunaksha + Bhuvan */}
@@ -389,6 +506,35 @@ const SellerPage = () => {
             {mbnError && <div className="mb-4 p-3 bg-error/10 border border-error/20 rounded-lg text-error text-xs">{mbnError}</div>}
 
             <form onSubmit={handleRegSubmit} className="space-y-5">
+              
+              {/* Automated OCR 7/12 Extraction */}
+              <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-primary flex items-center gap-2">
+                      <IconDocument size={14} /> Auto-fill from 7/12 Extract
+                    </h3>
+                    <p className="text-[10px] text-on-surface-variant mt-1">Upload a clear photo or PDF of your 7/12 document. Our AI will extract the location details automatically.</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input 
+                    type="file" 
+                    accept="image/*,.pdf" 
+                    ref={ocrInputRef}
+                    onChange={handleOCRUpload}
+                    className="hidden" 
+                    id="ocr-upload"
+                  />
+                  <label 
+                    htmlFor="ocr-upload" 
+                    className={`flex-1 flex items-center justify-center gap-2 h-10 rounded-lg text-xs font-bold transition-all cursor-pointer border ${isOcrLoading ? 'bg-surface-variant/50 text-on-surface-variant border-transparent cursor-not-allowed' : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20'}`}
+                  >
+                    {isOcrLoading ? 'Scanning Document...' : 'Upload 7/12 Document'}
+                  </label>
+                </div>
+              </div>
+
               {/* Owner Name */}
               <div className="space-y-1.5">
                 <label className={labelCls}>Owner Name</label>
@@ -619,7 +765,7 @@ const SellerPage = () => {
                     <tr key={l._id} className={`hover:bg-surface-container-high/30 transition-colors cursor-pointer ${selectedLandId === l._id ? 'bg-primary/5' : ''}`} onClick={() => setSelectedLandId(l._id)}>
                       <td className="px-5 py-3 font-mono text-xs">{l.location?.surveyNumber || l.surveyNumber}</td>
                       <td className="px-5 py-3 text-xs">{l.location?.village || l.village}</td>
-                      <td className="px-5 py-3 text-xs">{l.area?.value || l.area} {l.area?.unit || 'HA'}</td>
+                      <td className="px-5 py-3 text-xs">{typeof l.area === 'object' ? l.area?.value : l.area} {l.area?.unit || 'HA'}</td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2">
                           <StatusBadge status={l.status} />
@@ -648,11 +794,11 @@ const SellerPage = () => {
                 <div key={o._id} className="p-3 bg-surface-container-high rounded-lg border border-outline-variant/10 space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] font-mono text-secondary">{o.buyerWallet ? `${o.buyerWallet.slice(0, 6)}...${o.buyerWallet.slice(-4)}` : '—'}</span>
-                    <span className="text-sm font-bold">{o.price || '—'}</span>
+                    <span className="text-sm font-bold">{o.price?.amount ? `${o.price.amount} ${o.price.currency}` : '—'}</span>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => acceptOffer(o._id)} className="flex-grow py-1.5 bg-secondary/10 text-secondary text-[10px] font-bold rounded-md hover:bg-secondary/20 transition-colors">Accept</button>
-                    <button onClick={() => rejectOffer(o._id)} className="flex-grow py-1.5 bg-surface-container-highest text-on-surface text-[10px] font-bold rounded-md hover:bg-error/10 hover:text-error transition-colors">Reject</button>
+                    <button onClick={() => handleAcceptOffer(o._id)} className="flex-grow py-1.5 bg-secondary/10 text-secondary text-[10px] font-bold rounded-md hover:bg-secondary/20 transition-colors">Accept</button>
+                    <button onClick={() => handleRejectOffer(o._id)} className="flex-grow py-1.5 bg-surface-container-highest text-on-surface text-[10px] font-bold rounded-md hover:bg-error/10 hover:text-error transition-colors">Reject</button>
                   </div>
                 </div>
               ))}

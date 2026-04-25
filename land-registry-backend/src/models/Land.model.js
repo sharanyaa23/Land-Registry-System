@@ -1,3 +1,26 @@
+/**
+ * @file Land.model.js
+ * @description Defines the MongoDB schema for a Land asset — the core entity of the system.
+ *
+ *              SCHEMA FIELDS:
+ *              - owner:     Reference to the User who registered this land (ObjectId → User)
+ *              - coOwners:  Array of CoOwner references (for multi-sig consent)
+ *              - location:  Embedded object with district, taluka, village, surveyNumber, gatNumber
+ *              - area:      Object with value (Number) and unit (sqm/hectare/acre/guntha)
+ *              - status:    State machine controlling the land lifecycle (see STATUS FLOW below)
+ *              - documents: IPFS CIDs for 7/12 extract, Mahabhulekh snapshot, polygon GeoJSON
+ *              - txHash:    The blockchain transaction hash from on-chain registration
+ *
+ *              STATUS FLOW (State Machine):
+ *              draft → documents_uploaded → verification_pending → verification_passed → registered → listed
+ *                                                                ↘ officer_review (if OCR fails) ↗
+ *                                                                ↘ verification_failed (if rejected)
+ *              listed → transfer_pending → transferred (ownership changed)
+ *
+ * NOTE: This file is essential for the backend architecture.
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
@@ -55,7 +78,8 @@ const landSchema = new Schema({
       coOwnerId: { type: Schema.Types.ObjectId },
       cid: String
     }],
-    polygonGeoJsonCID: String
+    polygonGeoJsonCID: { type: String, default: null }, // IPFS CID for boundary
+    kmlCID: { type: String, default: null }             // IPFS CID for KML format
   },
 
   // Verification reference
@@ -64,7 +88,8 @@ const landSchema = new Schema({
 
   // On-chain data
   onChainTokenId: String,
-  registrationTxHash: String
+  txHash: String,
+  registrationTxHash: { type: String, default: null }
 }, {
   timestamps: true
 });

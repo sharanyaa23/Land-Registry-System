@@ -1,7 +1,53 @@
+/**
+ * @file index.js
+ * @description This file configures the primary API routing and versioning for the backend.
+ * 
+ * NOTE: This file is essential for the backend architecture. 
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
 const express = require('express');
 const router = express.Router();
+const path = require('path');
+const fs = require('fs');
 
 console.log('API v1 index.js loaded');
+
+// Root info route
+router.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Land Registry API v1',
+    version: '1.0.0',
+    endpoints: [
+      '/auth', '/profile', '/land', '/polygon', '/ipfs',
+      '/verification', '/officer', '/transfer', '/escrow',
+      '/notifications', '/webhook', '/spatial', '/contracts'
+    ]
+  });
+});
+
+// Contract ABIs
+router.get('/contracts', (req, res) => {
+  try {
+    const contractsDir = path.join(__dirname, '../../contracts');
+    const registry = fs.existsSync(path.join(contractsDir, 'LandRegistry.json'))
+      ? require(path.join(contractsDir, 'LandRegistry.json')) : null;
+    const multisig = fs.existsSync(path.join(contractsDir, 'MultiSigTransfer.json'))
+      ? require(path.join(contractsDir, 'MultiSigTransfer.json')) : null;
+
+    res.json({
+      success: true,
+      contracts: {
+        LandRegistry: registry,
+        MultiSigTransfer: multisig
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to load ABIs' });
+  }
+});
+
 
 // Mount all sub-routers
 router.use('/auth', require('./routes/auth.routes'));
@@ -16,6 +62,7 @@ router.use('/escrow', require('./routes/escrow.routes'));
 router.use('/notifications', require('./routes/notification.routes'));
 router.use('/webhook', require('./routes/webhook.routes'));
 router.use('/spatial', require('./routes/spatial.routes'));
+router.use('/document', require('./routes/document.routes'));
 
 // Safe route logging (fixed)
 console.log('\nRegistered v1 routes:');

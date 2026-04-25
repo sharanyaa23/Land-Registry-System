@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -28,6 +28,12 @@ api.interceptors.response.use(
   }
 );
 
+export const documentAPI = {
+  ocr712: (formData) => api.post('/document/ocr-712', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+};
+
 /* ── Auth ────────────────────────────────────────── */
 export const authAPI = {
   getNonce:         (walletAddress) => api.post('/auth/nonce', { walletAddress }),
@@ -52,6 +58,7 @@ export const landAPI = {
   update:          (id, data)   => api.put(`/land/${id}`, data),
   uploadDocuments: (id, data)   => api.post(`/land/${id}/upload-documents`, data),
   updateStatus:    (id, data)   => api.put(`/land/${id}/status`, data),
+  getContracts:    ()           => api.get('/contracts'),
 };
 
 /* ── Co-Owner (nested under /land) ───────────────── */
@@ -96,8 +103,9 @@ export const ipfsAPI = {
 
 /* ── Verification ────────────────────────────────── */
 export const verificationAPI = {
-  getResult: (landId) => api.get(`/verification/${landId}/result`),
-  trigger:    (landId) => api.post(`/verification/${landId}/ready`),
+  getResult:       (landId)   => api.get(`/verification/${landId}/result`),
+  trigger:         (landId)   => api.post(`/verification/${landId}/ready`),
+  uploadDocument:  (formData) => api.post('/verification/document-compare', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };
 
 /* ── Officer ─────────────────────────────────────── */

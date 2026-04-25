@@ -1,3 +1,11 @@
+/**
+ * @file webhook.controller.js
+ * @description This controller handles incoming HTTP requests, processes business logic, and returns API responses.
+ * 
+ * NOTE: This file is essential for the backend architecture. 
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
 const asyncHandler = require('../utils/asyncHandler');
 const logger = require('../utils/logger');
 

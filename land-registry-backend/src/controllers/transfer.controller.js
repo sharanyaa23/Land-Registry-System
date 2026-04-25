@@ -1,3 +1,23 @@
+/**
+ * @file transfer.controller.js
+ * @description Handles the complete lifecycle of land transfer requests between buyer and seller.
+ *
+ *              TRANSFER WORKFLOW (Escrow-based):
+ *              1. Buyer selects a land parcel on the Buyer Dashboard and clicks "Initiate Transfer"
+ *              2. POST /transfer/offer creates a TransferRequest in MongoDB with status 'offer_sent'
+ *              3. The buyer's MetaMask wallet sends the exact POL price to the MultiSigTransfer
+ *                 smart contract, which locks the funds in escrow on the Polygon blockchain
+ *              4. The seller and co-owners are notified and must provide NOC (No Objection Certificate)
+ *              5. Once all approvals are collected, the smart contract releases funds to the seller
+ *              6. The land ownership is transferred on-chain via LandRegistry.transferLand()
+ *
+ *              This controller handles steps 2 and 4 (MongoDB side).
+ *              Steps 3, 5, 6 happen on the blockchain via the frontend's ethers.js integration.
+ *
+ * NOTE: This file is essential for the backend architecture.
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
 const asyncHandler = require('../utils/asyncHandler');
 const TransferRequest = require('../models/TransferRequest.model');
 const Land = require('../models/Land.model');

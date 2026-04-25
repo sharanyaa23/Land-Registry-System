@@ -1,4 +1,12 @@
 /**
+ * @file role.middleware.js
+ * @description This middleware intercepts requests to perform checks like authentication, role verification, or rate limiting before reaching the controller.
+ * 
+ * NOTE: This file is essential for the backend architecture. 
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
+/**
  * Role-based access control middleware.
  *
  * Usage:

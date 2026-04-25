@@ -1,3 +1,11 @@
+/**
+ * @file crsDetect.js
+ * @description This utility file contains reusable helper functions used across the application.
+ * 
+ * NOTE: This file is essential for the backend architecture. 
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
 // src/utils/crsDetect.js
 /**
  * Auto-detect CRS from raw coordinate values returned by Mahabhunaksha.

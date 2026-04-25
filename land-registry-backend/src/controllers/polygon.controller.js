@@ -1,3 +1,11 @@
+/**
+ * @file polygon.controller.js
+ * @description This controller handles incoming HTTP requests, processes business logic, and returns API responses.
+ * 
+ * NOTE: This file is essential for the backend architecture. 
+ * It follows the Model-View-Controller (MVC) pattern.
+ */
+
 // src/controllers/polygon.controller.js
 const asyncHandler = require('../utils/asyncHandler');
 const Polygon = require('../models/Polygon.model');
@@ -90,6 +98,40 @@ exports.savePolygon = asyncHandler(async (req, res) => {
   await land.save();
 
   logger.info('Polygon saved', { landId: land._id, cid: geoCID, warnings: warnings.length });
+  res.json({ success: true, polygon });
+});
+
+// ─────────────────────────────────────────────────────────────
+// PUT /polygon/:id
+// ─────────────────────────────────────────────────────────────
+exports.updatePolygon = asyncHandler(async (req, res) => {
+  const land = await Land.findById(req.params.id);
+  if (!land) return res.status(404).json({ success: false, error: 'Land not found' });
+
+  if (land.owner.toString() !== req.userId.toString()) {
+    return res.status(403).json({ success: false, error: 'Not the owner' });
+  }
+
+  const { geoJson } = req.body;
+  
+  let polygon = await Polygon.findOne({ land: land._id }).sort({ createdAt: -1 });
+  if (!polygon) {
+    return res.status(404).json({ success: false, error: 'Polygon not found' });
+  }
+
+  polygon.geoJson = geoJson;
+  
+  if (turfArea) {
+    const feature = geoJson.type === 'Feature' ? geoJson : {
+      type: 'Feature',
+      geometry: geoJson,
+      properties: {}
+    };
+    polygon.areaSqm = turfArea(feature);
+  }
+
+  await polygon.save();
+  logger.info('Polygon updated manually', { landId: land._id });
   res.json({ success: true, polygon });
 });
 
@@ -350,6 +392,7 @@ exports.exportKml = asyncHandler(async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 module.exports = {
   savePolygon:        exports.savePolygon,
+  updatePolygon:      exports.updatePolygon,
   getPolygon:         exports.getPolygon,
   validatePolygon:    exports.validatePolygon,
   fromMahabhunaksha:  exports.fromMahabhunaksha,
