@@ -1,13 +1,5 @@
-/**
- * @file scraper.service.js
- * @description This service handles complex external integrations, background tasks, or specific business operations separate from the controller.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 // src/services/mahabhulekh/scraper.service.js
-
+const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer');
 const dotenv = require('dotenv');
@@ -17,22 +9,22 @@ const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
 const LAUNCH_OPTS = {
   headless: false,
-  slowMo:   50,
-  args:     ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security'],
+  slowMo: 50,
+  args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security'],
   defaultViewport: { width: 1366, height: 900 },
 };
 
 // ─── Mahabhulekh (7/12) constants ────────────────────────────────────────────
 const ID = {
-  district:          'ContentPlaceHolder1_ddlMainDist',
-  taluka:            'ContentPlaceHolder1_ddlTalForAll',
-  village:           'ContentPlaceHolder1_ddlVillForAll',
+  district: 'ContentPlaceHolder1_ddlMainDist',
+  taluka: 'ContentPlaceHolder1_ddlTalForAll',
+  village: 'ContentPlaceHolder1_ddlVillForAll',
   rbtnSearchTypeCTS: 'ContentPlaceHolder1_rbtnSearchType_0',
-  ctsInput:          'ContentPlaceHolder1_txtcsno',
-  searchBtn:         'ContentPlaceHolder1_btnsearchfind',
-  surveyResult:      'ContentPlaceHolder1_ddlsurveyno',
-  mobileInput:       'ContentPlaceHolder1_txtmobile1',
-  captchaInput:      'ContentPlaceHolder1_txtcaptcha',
+  ctsInput: 'ContentPlaceHolder1_txtcsno',
+  searchBtn: 'ContentPlaceHolder1_btnsearchfind',
+  surveyResult: 'ContentPlaceHolder1_ddlsurveyno',
+  mobileInput: 'ContentPlaceHolder1_txtmobile1',
+  captchaInput: 'ContentPlaceHolder1_txtcaptcha',
 };
 
 const SITE_URL = 'https://bhulekh.mahabhumi.gov.in/NewBhulekh.aspx';
@@ -40,9 +32,9 @@ const IMAGE_SAVE_DIR = process.env.IMAGE_SAVE_DIR || process.cwd();
 
 // ─── Mahabhunaksha district-code → URL path segment ──────────────────────────
 const MBN_DISTRICT_PATH = {
-  '01': '1',  '02': '2',  '03': '3',  '04': '4',
+  '01': '1', '02': '2', '03': '3', '04': '4',
   '05': '27',
-  '06': '6',  '07': '7',  '08': '8',  '09': '9',
+  '06': '6', '07': '7', '08': '8', '09': '9',
   '10': '10', '11': '11', '12': '12', '13': '13',
   '14': '14', '15': '15', '16': '16', '17': '17',
   '18': '18', '19': '19', '20': '20', '21': '21',
@@ -54,21 +46,21 @@ const MBN_DISTRICT_PATH = {
 
 function getMahabhunakshaUrl(districtCode) {
   const digits = String(districtCode).trim().match(/^(\d+)/)?.[1]?.padStart(2, '0') || '05';
-  const seg    = MBN_DISTRICT_PATH[digits] || digits.replace(/^0/, '');
+  const seg = MBN_DISTRICT_PATH[digits] || digits.replace(/^0/, '');
   return `https://mahabhunakasha.mahabhumi.gov.in/${seg}/index.html`;
 }
 
 function extractVillageMatchTokens(villageInput) {
-  const str       = String(villageInput).trim();
+  const str = String(villageInput).trim();
   const textMatch = str.match(/^\d+\s+(.+)$/);
-  const textPart  = textMatch ? textMatch[1].trim() : '';
-  const numPart   = str.match(/^(\d+)/)?.[1] || '';
+  const textPart = textMatch ? textMatch[1].trim() : '';
+  const numPart = str.match(/^(\d+)/)?.[1] || '';
 
   let portalCode = '';
   if (numPart) {
     const stripped = numPart.replace(/0+$/, '');
     const segments = stripped.split(/0+/).filter(Boolean);
-    const lastSeg  = segments[segments.length - 1] || '';
+    const lastSeg = segments[segments.length - 1] || '';
     portalCode = String(parseInt(lastSeg, 10) || 0);
     if (portalCode === '0' || portalCode === '') {
       portalCode = String(parseInt(stripped.slice(-4), 10));
@@ -79,6 +71,36 @@ function extractVillageMatchTokens(villageInput) {
   return { textPart, numPart, shortCode, portalCode, raw: str };
 }
 
+function isValidPolygon(vertices) {
+  if (!Array.isArray(vertices)) return false;
+  if (vertices.length < 3) return false;
+
+  return vertices.every(v => {
+    const x = parseFloat(v.x ?? v.rawX ?? v[0]);
+    const y = parseFloat(v.y ?? v.rawY ?? v[1]);
+    return Number.isFinite(x) && Number.isFinite(y);
+  });
+}
+
+function normalizeCoordinates(geometry) {
+  if (!geometry) return [];
+
+  let coords = [];
+
+  if (geometry.type === 'Polygon') {
+    coords = geometry.coordinates[0];
+  } else if (geometry.type === 'MultiPolygon') {
+    coords = geometry.coordinates[0][0];
+  }
+
+  return coords
+    .slice(0, -1) // remove duplicate last point
+    .map((c, i) => ({
+      id: `V${i + 1}`,
+      x: c[0],
+      y: c[1],
+    }));
+}
 // ─────────────────────────────────────────────────────────────────────────────
 
 class MahabhulekhScraper {
@@ -98,6 +120,21 @@ class MahabhulekhScraper {
     try {
       browser = await puppeteer.launch(LAUNCH_OPTS);
       const page = await browser.newPage();
+
+      let wfsData = null;
+
+      page.on('response', async (response) => {
+        try {
+          const url = response.url();
+
+          if (url.includes('wfs') && url.includes('GetFeature')) {
+            const json = await response.json();
+            wfsData = json;
+
+            console.log('[MBN] WFS captured!');
+          }
+        } catch (e) { }
+      });
 
       await page.evaluateOnNewDocument(() => {
         Object.defineProperty(Function.prototype, 'caller', { get: () => null });
@@ -152,7 +189,7 @@ class MahabhulekhScraper {
       console.log('\nPlease solve the CAPTCHA and CLICK the SUBMIT button yourself.');
       await delay(4000);
 
-      const startTime   = Date.now();
+      const startTime = Date.now();
       const MAX_WAIT_MS = 300000;
       let successDetected = false;
 
@@ -160,11 +197,13 @@ class MahabhulekhScraper {
         await delay(3000);
         try { finalHTML = await page.content(); }
         catch (e) {
-          return { verified: false, reason: 'Browser closed unexpectedly',
-                   html: '', retry: true, imageBased: false, mainImagePath: null };
+          return {
+            verified: false, reason: 'Browser closed unexpectedly',
+            html: '', retry: true, imageBased: false, mainImagePath: null
+          };
         }
-        const lowerHTML       = finalHTML.toLowerCase();
-        const elapsed         = Math.floor((Date.now() - startTime) / 1000);
+        const lowerHTML = finalHTML.toLowerCase();
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const hasCaptchaError =
           lowerHTML.includes('invalid captcha') ||
           lowerHTML.includes('कॅप्चा चुकीचा') ||
@@ -176,7 +215,7 @@ class MahabhulekhScraper {
           lowerHTML.includes('प्रिंट');
 
         console.log(`[Poll] largeImgCount=${largeImageCount} | resultBtn=${hasResultButton} | ` +
-                    `htmlLen=${finalHTML.length} | captchaErr=${hasCaptchaError} | elapsed=${elapsed}s`);
+          `htmlLen=${finalHTML.length} | captchaErr=${hasCaptchaError} | elapsed=${elapsed}s`);
 
         const isRealResult =
           largeImageCount >= 1 && hasResultButton &&
@@ -185,7 +224,7 @@ class MahabhulekhScraper {
         if (isRealResult) {
           console.log('Result page loaded successfully!');
           successDetected = true;
-          mainImagePath   = await this.captureMainResultImage(page, fullSurveyInput);
+          mainImagePath = await this.captureMainResultImage(page, fullSurveyInput);
           break;
         }
         if (hasCaptchaError) console.log('CAPTCHA error. Please re-enter and submit.');
@@ -201,8 +240,10 @@ class MahabhulekhScraper {
 
     } catch (err) {
       console.error('Scraper ERROR:', err.message);
-      return { verified: false, reason: err.message, html: finalHTML || '',
-               pdfBuffer: null, imageBased: false, mainImagePath: null, retry: true };
+      return {
+        verified: false, reason: err.message, html: finalHTML || '',
+        pdfBuffer: null, imageBased: false, mainImagePath: null, retry: true
+      };
     } finally {
       // if (browser) await browser.close();
     }
@@ -246,7 +287,7 @@ class MahabhulekhScraper {
           [...document.querySelectorAll('img')]
             .filter(img => (img.naturalWidth || img.clientWidth || 0) > 600).length
         );
-      } catch (_) {}
+      } catch (_) { }
     }
     return count;
   }
@@ -277,13 +318,105 @@ class MahabhulekhScraper {
   async scrapeMahabhunaksha(params = {}) {
     const { district, taluka, village, surveyNo, timeoutMs = 180000 } = params;
 
-    let browser  = null;
+    let browser = null;
     let mainPage = null;
+    let mapPage = null;
+    let interceptedExtent = null
+    let Coords = [];
+    let interceptedPlotInfo = null;  
 
     try {
-      browser  = await puppeteer.launch(LAUNCH_OPTS);
+      browser = await puppeteer.launch(LAUNCH_OPTS);
       mainPage = await browser.newPage();
 
+      mainPage.on('response', (res) => {
+        const url = res.url();
+        if (url.includes('wfs') || url.includes('geoserver')) {
+          console.log('[MBN DEBUG] WFS URL:', url);
+        }
+      });
+
+      //  Arm WFS interceptor EARLY ───────────────────────────
+      console.log('[MBN] Arming WFS interceptor (early)...');
+
+      let interceptedGeometry = null;
+
+      mainPage.on('response', async (response) => {
+        try {
+          const url = response.url();
+          if (!url.includes('.png') && !url.includes('.jpg') && !url.includes('tiles')) {
+            const ct = response.headers()['content-type'] || '';
+            if (ct.includes('json') || ct.includes('xml')) {
+              console.log('[MBN NET]', url.slice(0, 200));
+            }
+          }
+
+          if (url.includes('wfs') || url.includes('geoserver')) {
+
+            const text = await response.text();
+
+            // Some responses are XML, some JSON
+            if (text.includes('"coordinates"')) {
+              const json = JSON.parse(text);
+
+              const feature = json?.features?.[0];
+              if (feature?.geometry) {
+                interceptedGeometry = feature.geometry;
+
+                console.log('[MBN] WFS geometry captured!');
+                console.log('[MBN] Sample coords:',
+                  JSON.stringify(feature.geometry.coordinates?.[0]?.slice(0, 2))
+                );
+              }
+            }
+          }
+        } catch (e) { }
+      });
+
+
+      mainPage.on('response', async (response) => {
+        try {
+          const url = response.url();
+          if (
+            url.includes('getVVVVExtentGeoref') ||
+            url.includes('kidelistFromGisCodeMH') ||
+            url.includes('getPlotDetail') ||
+            url.includes('getParcelGeom') ||
+            url.includes('getGeomByKide') ||        // ← ADD
+            url.includes('getPolygon') ||           // ← ADD
+            url.includes('getKhasraGeom') ||        // ← ADD
+            url.includes('PlotInfoByGisCode') ||    // ← ADD
+            url.includes('getPlotInfo') ||          // ← ADD
+            url.includes('MapInfo/get')             // ← ADD (catches all MapInfo/* endpoints)
+          ) {
+            const ct = response.headers()['content-type'] || '';
+            if (ct.includes('json')) {
+              const json = await response.json();
+              console.log('[MBN REST]', url.slice(-70), JSON.stringify(json).slice(0, 400));
+              if (json?.geometry || json?.coordinates || json?.features) {
+                interceptedGeometry = json.geometry || json;
+                console.log('[MBN REST] Geometry captured!');
+              }
+            }
+          }
+          
+          if (url.includes('getExtentGeoref')) {
+            try {
+              const json = await response.json();
+              interceptedExtent = json;
+              console.log('[MBN] interceptedExtent captured', JSON.stringify(json).slice(0, 200));
+            } catch (e) { }
+          }
+
+          if (url.includes('getPlotInfo') && !url.includes('getPlotDetail')) {
+            try {
+              const json = await response.json();
+              interceptedPlotInfo = json;
+              console.log('[MBN] interceptedPlotInfo captured', JSON.stringify(json).slice(0, 200));
+            } catch (e) { }
+          }
+        } catch (_) { }
+      });
       // ── 1. Navigate ────────────────────────────────────────────────────────
       const url = getMahabhunakshaUrl(district);
       console.log(`[MBN] Navigating → ${url}`);
@@ -309,6 +442,7 @@ class MahabhulekhScraper {
         return this._mbnFail(mainPage, surveyNo, `District not matched: "${district}"`);
       }
 
+
       // ── 5. Taluka ──────────────────────────────────────────────────────────
       console.log(`[MBN] Step 5: Waiting for Taluka dropdown, then selecting "${taluka}"`);
       await this._mbnWaitSelectGrows(mainPage, 3, 2, 12000);
@@ -323,7 +457,7 @@ class MahabhulekhScraper {
       console.log(`[MBN] Step 6: Waiting for Village dropdown, then selecting "${village}"`);
       await this._mbnWaitSelectGrows(mainPage, 4, 2, 12000);
       await delay(800);
-      const tokens     = extractVillageMatchTokens(village);
+      const tokens = extractVillageMatchTokens(village);
       const villageSet = await this._mbnSetVillage(mainPage, tokens);
       if (!villageSet) {
         await this._mbnLogSelectOptions(mainPage, 4);
@@ -331,6 +465,9 @@ class MahabhulekhScraper {
       }
       console.log('[MBN] Village set. Waiting for map area to load...');
       await mainPage.waitForNetworkIdle({ idleTime: 1500, timeout: 15000 }).catch(() => delay(3000));
+      await delay(8000); // increase from 5000 — PDF canvas needs more time
+      // Then also wait for canvas:
+      if (mapPage) await this._mbnWaitForPdfContent(mapPage, 15000);
 
       // ── 7. Fill search input ───────────────────────────────────────────────
       const prefix = String(surveyNo).split('/')[0].trim();
@@ -349,18 +486,165 @@ class MahabhulekhScraper {
       if (!plotDropdownReady) console.warn('[MBN] Plot dropdown may be empty');
       await delay(600);
 
-      // ── 10. Select matching plot ───────────────────────────────────────────
-      console.log(`[MBN] Step 10: Selecting plot "${surveyNo}" from dropdown`);
-      const plotSelected = await this._mbnPickPlot(mainPage, surveyNo);
-      if (!plotSelected) console.warn('[MBN] Exact plot match not found; first option selected');
 
+
+      // ── STEP 10: Select plot + capture geometry (WFS FIRST, then OL fallback) ──
+
+      console.log('[MBN] Step 10: Selecting plot and extracting geometry');
+
+      // 1. Select plot (trigger change properly)
+      await mainPage.evaluate(() => {
+        const selects = document.querySelectorAll('select');
+        const plotSelect = selects[5]; // keep your index
+
+        if (!plotSelect) return;
+
+        plotSelect.value = '100';
+        plotSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+
+      // 2. Wait for map + network to update
+      await mainPage.waitForNetworkIdle({ idleTime: 1500, timeout: 10000 }).catch(() => { });
+      await delay(2000);
+
+      // 3. Wait briefly for any in-flight WFS/geoserver responses to be intercepted
+      await mainPage.waitForNetworkIdle({ idleTime: 1500, timeout: 8000 }).catch(() => { });
+
+      let vertices = [];
+
+      // 4. Use intercepted geometry if the response listener caught one
+      if (interceptedGeometry) {
+        console.log('[MBN] Using intercepted WFS geometry');
+        if (interceptedGeometry.type === 'Polygon') {
+          vertices = interceptedGeometry.coordinates[0];
+        } else if (interceptedGeometry.type === 'MultiPolygon') {
+          vertices = interceptedGeometry.coordinates[0][0];
+        }
+      }
+      // 5. FALLBACK → OpenLayers extraction (if WFS failed)
+      if (!vertices.length) {
+        console.log('[MBN] WFS empty → falling back to OpenLayers');
+
+        vertices = await mainPage.evaluate(() => {
+          try {
+            const map = window.map || window.olMap;
+            if (!map) return [];
+
+            const layers = map.getLayers().getArray();
+            let coords = [];
+
+            layers.forEach(layer => {
+              const src = layer.getSource?.();
+              const feats = src?.getFeatures?.() || [];
+
+              feats.forEach(f => {
+                const g = f.getGeometry();
+                if (!g) return;
+
+                if (g.getType() === 'Polygon') {
+                  coords = g.getCoordinates()[0];
+                }
+
+                if (g.getType() === 'MultiPolygon') {
+                  coords = g.getCoordinates()[0][0];
+                }
+              });
+            });
+
+            return coords;
+          } catch (e) {
+            return [];
+          }
+        });
+      }
+
+      console.log('[MBN] Final vertices count:', vertices.length);
+
+
+      // After Step 10 plot selection, add:
+      console.log('[MBN] Waiting for geometry REST response after plot select...');
+      await mainPage.waitForNetworkIdle({ idleTime: 2000, timeout: 10000 }).catch(() => { });
+      await delay(2000);
+      console.log('[MBN] interceptedGeometry after plot select:',
+        interceptedGeometry ? JSON.stringify(interceptedGeometry).slice(0, 200) : 'null');
+
+      // Add temporarily after step 10 plot selection:
+      await mainPage.waitForNetworkIdle({ idleTime: 3000, timeout: 15000 }).catch(() => { });
+
+      const allRequests = await mainPage.evaluate(() => {
+        // Capture performance entries
+        return performance.getEntriesByType('resource')
+          .filter(e => e.name.includes('mahabhunakasha'))
+          .map(e => e.name);
+      });
+      console.log('[MBN ALL REQUESTS]', JSON.stringify(allRequests, null, 2));
+
+
+      // In scrapeMahabhunaksha, after plot selection:
+      if (!Coords.length && interceptedExtent) {
+        // Build rectangle from bounding box as fallback
+        const { xmin, ymin, xmax, ymax } = interceptedExtent;
+        Coords = [
+          { id: 'V1', rawX: String(xmin), rawY: String(ymin) },
+          { id: 'V2', rawX: String(xmax), rawY: String(ymin) },
+          { id: 'V3', rawX: String(xmax), rawY: String(ymax) },
+          { id: 'V4', rawX: String(xmin), rawY: String(ymax) },
+        ];
+        console.log('[MBN] Using bounding box as polygon fallback');
+      }
       // ── 11. Wait for Plot Info panel ──────────────────────────────────────
       console.log('[MBN] Step 11: Waiting for Plot Info panel');
       await mainPage.waitForNetworkIdle({ idleTime: 1200, timeout: 10000 }).catch(() => delay(3000));
 
+      // ── 11b. Extract vertices directly from OpenLayers canvas ─────────────────
+      const olResult = await this._mbnExtractVerticesFromCanvas(mainPage);
+      console.log(`[MBN] OL canvas vertices: ${olResult.vertices.length}, CRS: ${olResult.crs}`);
+      if (!Coords.length && olResult.vertices?.length >= 3) {
+        console.log('[MBN] Falling back to OL canvas vertices');
+        Coords = olResult.vertices;
+      }
+      // ── DIAGNOSTIC: log all window-level OL map candidates ──────────────────
+      const olDiag = await mainPage.evaluate(() => {
+        const candidates = {};
+        for (const key of Object.keys(window)) {
+          try {
+            const val = window[key];
+            if (val && typeof val === 'object' && typeof val.getLayers === 'function') {
+              const layerCount = val.getLayers?.().getLength?.() ?? '?';
+              const proj = val.getView?.().getProjection?.().getCode?.() ?? '?';
+              candidates[key] = { layerCount, proj };
+            }
+          } catch (_) { }
+        }
+        return candidates;
+      });
+      console.log('[MBN DIAG] OL map candidates on window:', JSON.stringify(olDiag));
+
+      const olLayers = await mainPage.evaluate(() => {
+        // replace 'map' with whatever the diagnostic above finds
+        const m = window.map || window.olMap;
+        if (!m) return 'no map found';
+        const out = [];
+        m.getLayers().forEach(l => {
+          const src = l.getSource?.();
+          const featureCount = src?.getFeatures?.()?.length ?? 'n/a';
+          out.push({ type: l.constructor?.name, featureCount });
+        });
+        return out;
+      });
+      console.log('[MBN DIAG] OL layers:', JSON.stringify(olLayers));
+
+
+      // ── Step 11c: Check intercepted geometry ──────────────────────────────
+      await delay(2000); // give any pending responses time to arrive
+      if (interceptedGeometry) {
+        console.log('[MBN] Using intercepted geometry, coordinates:',
+          JSON.stringify(interceptedGeometry.coordinates?.[0]?.slice(0, 3)));
+      }
+
       // ── 12. Capture Plot Info ──────────────────────────────────────────────
       const plotInfoEntries = await this._mbnExtractPlotInfo(mainPage);
-      const infoPanelHtml   = await this._mbnGetPlotInfoHtml(mainPage);
+      const infoPanelHtml = await this._mbnGetPlotInfoHtml(mainPage);
       console.log(`[MBN] Plot info entries: ${plotInfoEntries.length}`);
 
       // ── 13. Scroll to reveal Map Report link ───────────────────────────────
@@ -372,7 +656,7 @@ class MahabhulekhScraper {
             if (/auto|scroll/.test(cs.overflow + cs.overflowY) && el.scrollHeight > el.clientHeight + 10) {
               el.scrollTop = el.scrollHeight;
             }
-          } catch (_) {}
+          } catch (_) { }
         });
         window.scrollTo(0, document.body.scrollHeight);
       });
@@ -391,12 +675,92 @@ class MahabhulekhScraper {
         };
       }
 
+      // ── 14b. Fetch report HTML server-side using Puppeteer's session cookies ──
+      let serverSideReportHtml = '';
+      try {
+        const fetch = require('node-fetch');
+
+        // Extract cookies from the live Puppeteer session
+        const cookies = await mainPage.cookies();
+        const cookieHeader = cookies.map(c => `${c.name}=${c.value}`).join('; ');
+
+        const resp = await fetch(mapReportUrl, {
+          timeout: 15000,
+          redirect: 'follow',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Referer': mainPage.url(),
+            'Cookie': cookieHeader,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          },
+        });
+
+        if (resp.ok) {
+          serverSideReportHtml = await resp.text();
+          // Right after: serverSideReportHtml = await resp.text();
+
+          fs.writeFileSync('mbn_serverside_debug.html', serverSideReportHtml);
+          console.log('[MBN] Server-side HTML dumped to mbn_serverside_debug.html');
+          console.log(`[MBN] Server-side report HTML fetched, length: ${serverSideReportHtml.length}`);
+        } else {
+          console.warn(`[MBN] Server-side fetch returned HTTP ${resp.status}`);
+        }
+      } catch (e) {
+        console.warn('[MBN] Server-side fetch of report failed:', e.message);
+      }
+      // ── Before Step 15 ─────────────────────────────────────────────────────
+      await mainPage.setRequestInterception(false);
+
       // ── 15. Open Map Report page ───────────────────────────────────────────
       console.log('[MBN] Step 15: Opening Map Report page directly');
-      const mapPage = await browser.newPage();
+      mapPage = await browser.newPage();
+
+
+      // ── Intercept the PDF base64 API response ─────────────────────────────
+      let capturedPdfBase64 = null;
+
+      mapPage.on('response', async (response) => {
+        try {
+          const url = response.url();
+          if (url.includes('PlotReportPDFBase64')) {
+            const text = await response.text();
+            if (text && text.length > 100) {
+              capturedPdfBase64 = text.trim();
+              console.log(`[MBN] PDF base64 captured, length: ${capturedPdfBase64.length}`);
+            }
+          }
+        } catch (_) { }
+      });
+
       const layerPaneUrl = mapReportUrl.replace(/#.*$/, '') + '#layer-pane';
       await mapPage.goto(layerPaneUrl, { waitUntil: 'networkidle2', timeout: 60000 });
       await delay(3000);
+
+      // // ── DIAGNOSTIC: Log ALL network requests from the report page ──────────
+      // mapPage.on('request', req => {
+      //   const url = req.url();
+      //   const type = req.resourceType();
+      //   if (['xhr', 'fetch', 'document'].includes(type)) {
+      //     console.log(`[MBN NET] ${type.toUpperCase()} → ${url}`);
+      //   }
+      // });
+
+      // mapPage.on('response', async resp => {
+      //   const url = resp.url();
+      //   const type = resp.request().resourceType();
+      //   if (['xhr', 'fetch'].includes(type)) {
+      //     try {
+      //       const text = await resp.text();
+      //       console.log(`[MBN NET RESP] ${url.slice(0, 120)}`);
+      //       console.log(`[MBN NET BODY] ${text.slice(0, 300)}`);
+      //     } catch (_) { }
+      //   }
+      // });
+
+
+      // const layerPaneUrl = mapReportUrl.replace(/#.*$/, '') + '#layer-pane';
+      // await mapPage.goto(layerPaneUrl, { waitUntil: 'networkidle2', timeout: 60000 });
+      // await delay(3000);
 
       // ── 16. Tick all checkboxes in #layer-pane ─────────────────────────────
       // This is critical — checkboxes must ALL be checked to get coordinates
@@ -406,7 +770,13 @@ class MahabhulekhScraper {
       await delay(500);
       const checkedCount = await this._mbnCheckAllCheckboxes(mapPage);
       console.log(`[MBN] Checked ${checkedCount} checkboxes`);
-      await delay(1500); // extra wait for map to re-render with all layers
+
+
+      // After: const checkedCount = await this._mbnCheckAllCheckboxes(mapPage);
+      await delay(3000); // let JS render
+      const liveDom = await mapPage.content();
+      fs.writeFileSync('mbn_livedom_debug.html', liveDom);
+      console.log('[MBN] Live DOM dumped, length:', liveDom.length);
 
       // ── 17. Navigate to #home-pane (Report tab) ────────────────────────────
       console.log('[MBN] Step 17: Navigating to #home-pane');
@@ -416,7 +786,65 @@ class MahabhulekhScraper {
       }
       await delay(2000);
 
-      // ── 18. Set up new-tab listener BEFORE clicking Show Report PDF ────────
+
+      // ── 17b. Wait for PDF base64 to be captured ───────────────────────────
+      // The page auto-calls showReportPDF() on load, which POSTs to the API.
+      // We wait up to 20s for the response to arrive.
+      if (!capturedPdfBase64) {
+        console.log('[MBN] Waiting for PDF API response...');
+        const deadline = Date.now() + 20000;
+        while (!capturedPdfBase64 && Date.now() < deadline) {
+          await delay(500);
+        }
+      }
+
+      if (capturedPdfBase64) {
+        console.log('[MBN] PDF captured — extracting coordinates via pdf-parse');
+        try {
+          const pdfParseModule = require('pdf-parse');
+          const pdfParse = typeof pdfParseModule === 'function' ? pdfParseModule : pdfParseModule.default;
+          const pdfBuffer = Buffer.from(capturedPdfBase64, 'base64');
+          const pdfData = await pdfParse(pdfBuffer);
+          const pdfText = pdfData.text;
+          console.log('[MBN] PDF text length:', pdfText.length);
+          console.log('[MBN] PDF text snippet:', pdfText.slice(0, 500));
+
+          // Save PDF for manual inspection if needed
+          const pdfPath = require('path').resolve(
+            process.env.IMAGE_SAVE_DIR || process.cwd(),
+            `mbn_plot_${surveyNo}_${Date.now()}.pdf`
+          );
+          fs.writeFileSync(pdfPath, pdfBuffer);
+          console.log('[MBN] PDF saved to:', pdfPath);
+
+          // Store for return
+          mapPage.__pdfText = pdfText;
+          const lines = pdfText.split('\n');
+          const coordPattern = /(\d+)\s+([\d.]+)\s+([\d.]+)/;
+          const extractedVertices = [];
+
+          for (const line of lines) {
+            const match = line.match(coordPattern);
+            if (match) {
+              const x = parseFloat(match[2]);
+              const y = parseFloat(match[3]);
+              // Filter: UTM coords in Maharashtra are roughly X: 700000-900000, Y: 1800000-2600000
+              if (x > 10 && y > 10 && x < 10000000 && y < 10000000) {
+                extractedVertices.push({ id: `V${match[1]}`, rawX: String(x), rawY: String(y) });
+              }
+            }
+          }
+          if (extractedVertices.length >= 3) {
+            Coords = extractedVertices;
+          }
+
+        } catch (e) {
+          console.warn('[MBN] PDF parse failed:', e.message);
+        }
+      }
+
+
+      //  18. Set up new-tab listener BEFORE clicking Show Report PDF ────────
       console.log('[MBN] Step 18: Setting up new-tab listener and clicking Show Report PDF');
 
       const pdfTabPromise = new Promise(resolve => {
@@ -468,7 +896,7 @@ class MahabhulekhScraper {
         console.log(`[MBN] Report URL from new tab: ${reportUrl}`);
 
         // Close Chrome's native tab (can't screenshot PDF viewer natively)
-        await nativePage.close().catch(() => {});
+        await nativePage.close().catch(() => { });
 
         // Re-open the URL in a fresh normal Puppeteer page for screenshotting
         const renderPage = await browser.newPage();
@@ -494,9 +922,12 @@ class MahabhulekhScraper {
 
         if (!finalScreenshotPath) {
           finalScreenshotPath = await this._mbnScreenshotReportPage(renderPage, surveyNo);
+          const reportCoords = await this._mbnExtractCoordinatesFromReport(renderPage);
+
+          console.log('[MBN] Report Coordinates:', reportCoords.length);
         }
 
-        await renderPage.close().catch(() => {});
+        await renderPage.close().catch(() => { });
 
       } else {
         // ── No new tab: report may have rendered inline in mapPage ────────────
@@ -508,22 +939,16 @@ class MahabhulekhScraper {
         console.log(`[MBN] Current mapPage URL after button click: ${currentUrl}`);
 
         if (currentUrl && currentUrl !== layerPaneUrl && currentUrl !== 'about:blank') {
-          // mapPage itself navigated to the report URL — re-open in fresh page
-          console.log('[MBN] mapPage navigated to report URL — re-opening in fresh page');
-          const renderPage = await browser.newPage();
+          // mapPage itself navigated to the report URL — just wait for images to load,
+          // then screenshot the right panel directly (no new tab needed).
+          console.log('[MBN] mapPage navigated to report URL — waiting for content to load on same page');
 
-          if (currentUrl.match(/\.pdf($|\?)/i)) {
-            const pdfJsUrl = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(currentUrl)}`;
-            await renderPage.goto(pdfJsUrl, { waitUntil: 'networkidle2', timeout: 60000 });
-            await this._mbnWaitForPdfContent(renderPage, 20000);
-            await delay(3000);
-          } else {
-            await renderPage.goto(currentUrl, { waitUntil: 'networkidle2', timeout: 60000 });
-            await delay(3000);
-          }
+          // Wait for network to settle, then give extra time for images/canvas to render
+          await mapPage.waitForNetworkIdle({ idleTime: 2000, timeout: 20000 }).catch(() => { });
+          await delay(5000); // extra buffer so map tiles / report images fully paint
 
-          finalScreenshotPath = await this._mbnScreenshotReportPage(renderPage, surveyNo);
-          await renderPage.close().catch(() => {});
+          // Screenshot only the right-side report area (excludes left sidebar)
+          finalScreenshotPath = await this._mbnScreenshotRightPanel(mapPage, surveyNo);;
 
         } else {
           // Report is embedded inline in mapPage — screenshot just the right panel
@@ -545,9 +970,18 @@ class MahabhulekhScraper {
       return {
         success: true,
         plotInfoEntries,
+        mapReportHtml: serverSideReportHtml || mapReportHtml,
         infoPanelHtml,
-        mapReportHtml,
+        mapReportHtml: mapPage.__pdfText
+          ? `<pre>${mapPage.__pdfText}</pre>`
+          : (serverSideReportHtml || mapReportHtml),
         screenshotPath: finalScreenshotPath,
+        normalizedCoords: Coords,  
+        olVertices: olResult.vertices || [],
+        olCRS: olResult.crs || '',
+        interceptedExtent,      // ← ADD
+        interceptedPlotInfo,
+        interceptedGeometry: interceptedGeometry || null,
         reason: null,
       };
 
@@ -572,13 +1006,55 @@ class MahabhulekhScraper {
   // ═══════════════════════════════════════════════════════════════════════════
 
   async _mbnScreenshotReportPage(page, surveyNo) {
-    const safe   = String(surveyNo).replace(/[^a-zA-Z0-9]/g, '_');
+    const safe = String(surveyNo).replace(/[^a-zA-Z0-9]/g, '_');
     const ssPath = path.resolve(IMAGE_SAVE_DIR, `mbn_plot_report_${safe}_${Date.now()}.png`);
     await page.screenshot({ path: ssPath, fullPage: true, type: 'png' });
     console.log(`[MBN] Report screenshot saved: ${ssPath}`);
     return ssPath;
   }
 
+
+  async _mbnExtractCoordinatesFromReport(page) {
+    return page.evaluate(() => {
+      const coords = [];
+
+      // 🔍 Find tables containing coordinates
+      const tables = [...document.querySelectorAll('table')];
+
+      for (const table of tables) {
+        const text = table.innerText.toLowerCase();
+
+        if (
+          text.includes('northing') ||
+          text.includes('easting') ||
+          text.includes('x') ||
+          text.includes('y') ||
+          text.includes('vertex')
+        ) {
+          const rows = [...table.querySelectorAll('tr')];
+
+          for (const row of rows) {
+            const cols = [...row.querySelectorAll('td')].map(td => td.innerText.trim());
+
+            if (cols.length >= 2) {
+              const x = parseFloat(cols[1]);
+              const y = parseFloat(cols[2] || cols[1]);
+
+              if (!isNaN(x) && !isNaN(y)) {
+                coords.push({
+                  id: `V${coords.length + 1}`,
+                  x,
+                  y,
+                });
+              }
+            }
+          }
+        }
+      }
+
+      return coords;
+    });
+  }
   // ═══════════════════════════════════════════════════════════════════════════
   // Screenshot only the right-side report/map panel of mapPage,
   // excluding the left sidebar (Home panel).
@@ -589,53 +1065,86 @@ class MahabhulekhScraper {
     const safe = String(surveyNo).replace(/[^a-zA-Z0-9]/g, '_');
     const ssPath = path.resolve(IMAGE_SAVE_DIR, `mbn_plot_report_${safe}_${Date.now()}.png`);
 
-    // Find the bounding box of the right-side panel (report/PDF viewer area)
-    const clip = await page.evaluate(() => {
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
+    await delay(2000);
 
-      // Strategy 1: find a large element to the right of the sidebar
-      const candidates = [
-        ...document.querySelectorAll('iframe, embed, object, canvas, .ol-viewport, .leaflet-container, [class*="report"], [class*="viewer"], [class*="map-pane"], [id*="report"], [id*="viewer"]'),
-      ].filter(el => {
-        const r = el.getBoundingClientRect();
-        return r.width > 300 && r.height > 300 && r.left > vw * 0.25;
-      }).sort((a, b) => {
-        const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
-        return (rb.width * rb.height) - (ra.width * ra.height);
-      });
+    const sharp = require('sharp');
 
-      if (candidates[0]) {
-        const r = candidates[0].getBoundingClientRect();
-        return { x: Math.floor(r.left), y: Math.floor(r.top), width: Math.ceil(r.width), height: Math.ceil(r.height) };
+    const fullBuffer = await page.screenshot({ type: 'png', fullPage: false });
+    const { data, info } = await sharp(fullBuffer).raw().toBuffer({ resolveWithObject: true });
+    const { width, height, channels } = info;
+
+    console.log(`[MBN] Full screenshot size: ${width}x${height}`);
+
+    const startX = Math.round(width * 0.50);
+    const sampleRows = 30;
+    const step = Math.floor(height / sampleRows);
+
+    const isColumnWhite = (x) => {
+      let white = 0;
+      for (let y = step; y < height - step; y += step) {
+        const idx = (y * width + x) * channels;
+        if (data[idx] > 220 && data[idx + 1] > 220 && data[idx + 2] > 220) white++;
       }
+      return white / sampleRows > 0.60;
+    };
 
-      // Strategy 2: find the widest/largest div that starts past 25% of viewport
-      const divs = [...document.querySelectorAll('div, section')].filter(el => {
-        const r = el.getBoundingClientRect();
-        return r.left > vw * 0.25 && r.width > vw * 0.4 && r.height > vh * 0.4;
-      }).sort((a, b) => {
-        const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
-        return (rb.width * rb.height) - (ra.width * ra.height);
-      });
-
-      if (divs[0]) {
-        const r = divs[0].getBoundingClientRect();
-        return { x: Math.floor(r.left), y: Math.floor(r.top), width: Math.ceil(r.width), height: Math.ceil(r.height) };
+    // Find left edge of report card (non-white → white transition)
+    let cardLeft = Math.round(width * 0.60);
+    for (let x = startX; x < width - 20; x++) {
+      if (!isColumnWhite(x - 1) && isColumnWhite(x)) {
+        cardLeft = x;
+        break;
       }
+    }
 
-      // Strategy 3: hard-coded right half of viewport as fallback
-      const sidebarWidth = Math.round(vw * 0.28); // approx sidebar width
-      return { x: sidebarWidth, y: 0, width: vw - sidebarWidth, height: vh };
-    });
+    // Find cardTop: first white row from top (skip toolbar)
+    let cardTop = 0;
+    for (let y = 0; y < Math.round(height * 0.25); y++) {
+      const idx = (y * width + cardLeft + 20) * channels;
+      if (data[idx] > 220 && data[idx + 1] > 220 && data[idx + 2] > 220) {
+        cardTop = y;
+        break;
+      }
+    }
 
-    console.log(`[MBN] Right panel clip: x=${clip.x} y=${clip.y} w=${clip.width} h=${clip.height}`);
+    // Find the bottom of the MAP BOX specifically.
+    // Strategy: scan top→down looking for a long dark horizontal line
+    // (the bottom border of the map box) after at least 30% of height.
+    // A border line = a row where many consecutive pixels are dark (R<80).
+    const mapBoxStart = Math.round(height * 0.30);
+    const scanRight = width - 5;
+    const scanLeft = cardLeft + 5;
+    let mapBoxBottom = Math.round(height * 0.80); // fallback: 80% of height
 
-    await page.screenshot({ path: ssPath, type: 'png', clip });
+    for (let y = mapBoxStart; y < Math.round(height * 0.90); y++) {
+      let darkPixels = 0;
+      const totalCols = scanRight - scanLeft;
+      for (let x = scanLeft; x < scanRight; x += 3) {
+        const idx = (y * width + x) * channels;
+        if (data[idx] < 80 && data[idx + 1] < 80 && data[idx + 2] < 80) darkPixels++;
+      }
+      // If >40% of the row is dark, it's a border line
+      if (darkPixels / (totalCols / 3) > 0.40) {
+        mapBoxBottom = y + 4; // small padding below the border
+        break;
+      }
+    }
+
+    const cropLeft = Math.max(0, cardLeft - 5);
+    const cropTop = Math.max(0, cardTop);
+    const cropWidth = width - cropLeft;
+    const cropHeight = height - cropTop;
+
+    console.log(`[MBN] Crop: left=${cropLeft} top=${cropTop} w=${cropWidth} h=${cropHeight} mapBoxBottom=${mapBoxBottom}`);
+
+    await sharp(fullBuffer)
+      .extract({ left: cropLeft, top: cropTop, width: cropWidth, height: cropHeight })
+      .png()
+      .toFile(ssPath);
+
     console.log(`[MBN] Right-panel screenshot saved: ${ssPath}`);
     return ssPath;
   }
-
   // ═══════════════════════════════════════════════════════════════════════════
   // Wait for PDF viewer iframe/embed to appear
   // ═══════════════════════════════════════════════════════════════════════════
@@ -656,11 +1165,11 @@ class MahabhulekhScraper {
         if (embeds.length > 0) return { found: true, tag: embeds[0].tagName };
 
         const divs = [...document.querySelectorAll('div, section')].filter(el => {
-          const r   = el.getBoundingClientRect();
+          const r = el.getBoundingClientRect();
           const cls = (el.id + ' ' + el.className).toLowerCase();
           return r.width > 300 && r.height > 400 &&
-                 r.left > vw * 0.35 &&
-                 /pdf|viewer|report|preview/.test(cls);
+            r.left > vw * 0.35 &&
+            /pdf|viewer|report|preview/.test(cls);
         });
         if (divs.length > 0) return { found: true, tag: 'div' };
 
@@ -683,10 +1192,11 @@ class MahabhulekhScraper {
   // ═══════════════════════════════════════════════════════════════════════════
 
   async _mbnWaitForPdfContent(page, timeoutMs = 15000) {
+    if (!page) return false;
     const deadline = Date.now() + timeoutMs;
     console.log('[MBN] Waiting for PDF canvas to render...');
 
-    await page.waitForNetworkIdle({ idleTime: 1500, timeout: timeoutMs * 0.5 }).catch(() => {});
+    await page.waitForNetworkIdle({ idleTime: 1500, timeout: timeoutMs * 0.5 }).catch(() => { });
 
     while (Date.now() < deadline) {
       const hasCanvas = await (async () => {
@@ -699,7 +1209,7 @@ class MahabhulekhScraper {
               document.querySelectorAll('.page, .pdfViewer').length > 0
             );
             if (ok) return true;
-          } catch (_) {}
+          } catch (_) { }
         }
         return false;
       })();
@@ -748,8 +1258,8 @@ class MahabhulekhScraper {
 
       const onclick = link.getAttribute('onclick') || '';
       const urlMatch = onclick.match(/['"]([^'"]*signplotreport[^'"]*)['"]/i) ||
-                       onclick.match(/window\.open\(['"]([^'"]+)['"]/i) ||
-                       onclick.match(/location\.href\s*=\s*['"]([^'"]+)['"]/i);
+        onclick.match(/window\.open\(['"]([^'"]+)['"]/i) ||
+        onclick.match(/location\.href\s*=\s*['"]([^'"]+)['"]/i);
       if (urlMatch) {
         const raw = urlMatch[1];
         return raw.startsWith('http') ? raw : (window.location.origin + (raw.startsWith('/') ? '' : '/') + raw);
@@ -791,7 +1301,7 @@ class MahabhulekhScraper {
     return page.evaluate((nth, text) => {
       const el = document.querySelectorAll('select')[nth];
       if (!el) return false;
-      const t       = text.toString().toLowerCase().trim();
+      const t = text.toString().toLowerCase().trim();
       const numPart = t.match(/^(\d+)/)?.[1] || '';
       const options = [...el.options];
 
@@ -804,8 +1314,8 @@ class MahabhulekhScraper {
       });
       if (!match && numPart) {
         match = options.find(o => {
-          const ov      = o.value.toString().trim();
-          const ot      = o.textContent.trim();
+          const ov = o.value.toString().trim();
+          const ot = o.textContent.trim();
           const leadNum = ov.match(/^(\d+)/)?.[1] || ot.match(/^(\d+)/)?.[1] || '';
           return leadNum === numPart || leadNum.replace(/^0+/, '') === numPart.replace(/^0+/, '');
         });
@@ -915,6 +1425,114 @@ class MahabhulekhScraper {
     }, value);
   }
 
+  async _mbnExtractVerticesFromCanvas(mapPage) {
+    return mapPage.evaluate(() => {
+      try {
+        const viewport = document.querySelector('.ol-viewport');
+        if (!viewport) return { vertices: [], crs: '' };
+
+        let olMap = null;
+
+        // Strategy 1: common globals
+        for (const key of ['map', 'olMap', '_map', 'appMap', 'olview']) {
+          if (window[key] && typeof window[key].getLayers === 'function') {
+            olMap = window[key];
+            break;
+          }
+        }
+
+        // Strategy 2: scan window
+        if (!olMap) {
+          for (const key of Object.keys(window)) {
+            try {
+              const val = window[key];
+              if (
+                val &&
+                typeof val === 'object' &&
+                typeof val.getLayers === 'function' &&
+                typeof val.getView === 'function'
+              ) {
+                olMap = val;
+                break;
+              }
+            } catch (_) { }
+          }
+        }
+
+        if (!olMap) return { vertices: [], crs: '' };
+
+        let crs = '';
+        try {
+          crs = olMap.getView().getProjection().getCode();
+        } catch (_) { }
+
+        let vertices = [];
+
+        olMap.getLayers().forEach(layer => {
+          if (vertices.length) return; // 🔥 stop once found
+
+          if (typeof layer.getSource !== 'function') return;
+          const src = layer.getSource();
+          if (!src || typeof src.getFeatures !== 'function') return;
+
+          const features = src.getFeatures();
+          if (!features || !features.length) return;
+
+          for (const feature of features) {
+            const geom = feature.getGeometry();
+            if (!geom) continue;
+
+            const type = geom.getType();
+
+            if (type === 'Polygon' || type === 'MultiPolygon') {
+              let ring = [];
+
+              if (type === 'Polygon') {
+                ring = geom.getCoordinates()[0];
+              } else {
+                ring = geom.getCoordinates()[0][0];
+              }
+
+              // Remove closing coordinate
+              if (ring.length >= 4) {
+                ring = ring.slice(0, -1);
+              }
+
+              // Convert to expected format
+              vertices = ring.map((c, i) => ({
+                id: `V${i + 1}`,
+                rawX: String(c[0]),
+                rawY: String(c[1]),
+              }));
+
+              break;
+            }
+          }
+        });
+
+
+        const valid = vertices.length >= 3 && vertices.every(v => {
+          const x = parseFloat(v.rawX);
+          const y = parseFloat(v.rawY);
+
+          // Reject measurement-like values
+          if (x < 1000 && y < 1000) return false;
+
+          return true;
+        });
+
+        if (!valid) {
+          return { vertices: [], crs };
+        }
+
+        return { vertices, crs };
+
+      } catch (e) {
+        return { vertices: [], crs: '' };
+      }
+    });
+  }
+
   async _mbnClickSearchBtn(page) {
     return page.evaluate(() => {
       const btns = [...document.querySelectorAll('button, input[type=submit], input[type=button], a')]
@@ -941,7 +1559,7 @@ class MahabhulekhScraper {
   async _mbnPickPlot(page, surveyNo) {
     return page.evaluate((surveyNo) => {
       const prefix = surveyNo.split('/')[0].trim();
-      const norm   = s => s.toString().trim().toLowerCase();
+      const norm = s => s.toString().trim().toLowerCase();
       const allSelects = [...document.querySelectorAll('select')];
 
       const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -952,7 +1570,7 @@ class MahabhulekhScraper {
           for (let i = 0; i < 6 && el; i++, el = el.parentElement) {
             const sel = el.querySelector('select');
             if (sel && sel.options.length >= 1) {
-              const opts   = [...sel.options].filter(o => o.value);
+              const opts = [...sel.options].filter(o => o.value);
               const chosen =
                 opts.find(o => norm(o.textContent) === norm(surveyNo)) ||
                 opts.find(o => norm(o.textContent).includes(norm(prefix))) ||
@@ -1051,7 +1669,7 @@ class MahabhulekhScraper {
         if (!cb.checked) {
           cb.checked = true;
           cb.dispatchEvent(new Event('change', { bubbles: true }));
-          cb.dispatchEvent(new Event('click',  { bubbles: true }));
+          cb.dispatchEvent(new Event('click', { bubbles: true }));
         }
         count++;
       }
@@ -1080,8 +1698,8 @@ class MahabhulekhScraper {
       const partial = candidates.find(el => {
         const text = (el.textContent || el.value || '').trim().toLowerCase();
         return (text.includes('show') && text.includes('report')) ||
-               (text.includes('report') && text.includes('pdf'))  ||
-               (text.includes('generate') && text.includes('pdf'));
+          (text.includes('report') && text.includes('pdf')) ||
+          (text.includes('generate') && text.includes('pdf'));
       });
       if (partial) {
         partial.scrollIntoView({ block: 'center' });
@@ -1110,7 +1728,7 @@ class MahabhulekhScraper {
         }
       }
       const body = document.body.innerText || '';
-      const idx  = body.search(/Survey\s*No\s*[.:]/i);
+      const idx = body.search(/Survey\s*No\s*[.:]/i);
       return idx !== -1 ? body.slice(idx, idx + 2000) : '';
     });
     return this._parsePlotInfoText(text);
@@ -1158,11 +1776,11 @@ class MahabhulekhScraper {
         const kv = line.match(/^([^:]+?)\s*:\s*(.+)$/);
         if (!kv) continue;
         const k = kv[1].trim(), v = kv[2].trim();
-        if (/survey\s*no/i.test(k))       entry.surveyNo   = v;
-        else if (/total\s*area/i.test(k))  entry.totalArea  = parseFloat(v) || v;
+        if (/survey\s*no/i.test(k)) entry.surveyNo = v;
+        else if (/total\s*area/i.test(k)) entry.totalArea = parseFloat(v) || v;
         else if (/pot\s*kharaba/i.test(k)) entry.potKharaba = parseFloat(v) || v;
-        else if (/owner\s*name/i.test(k))  entry.ownerName  = v;
-        else if (/khata\s*no/i.test(k))    entry.khataNo    = v;
+        else if (/owner\s*name/i.test(k)) entry.ownerName = v;
+        else if (/khata\s*no/i.test(k)) entry.khataNo = v;
       }
       if (entry.surveyNo || entry.ownerName) entries.push(entry);
     }
@@ -1170,7 +1788,7 @@ class MahabhulekhScraper {
   }
 
   async _mbnSS(page, label) {
-    const safe    = String(label).replace(/[^a-zA-Z0-9_]/g, '_');
+    const safe = String(label).replace(/[^a-zA-Z0-9_]/g, '_');
     const absPath = path.resolve(IMAGE_SAVE_DIR, `mbn_${safe}_${Date.now()}.png`);
     try {
       await page.screenshot({ fullPage: false, path: absPath, type: 'png' });
@@ -1187,6 +1805,7 @@ class MahabhulekhScraper {
       success: false, plotInfoEntries: [], infoPanelHtml: '',
       screenshotPath: await this._mbnSS(page, surveyNo + '_fail').catch(() => null),
       reason,
+   
     };
   }
 
@@ -1205,20 +1824,21 @@ class MahabhulekhScraper {
 
     const urls = [
       `https://mahabhunakasha.maharashtra.gov.in/wfs?service=WFS&version=1.1.0` +
-        `&request=GetFeature&typeName=cadastral&outputFormat=application/json` +
-        `&CQL_FILTER=district_code='${districtCode}'+AND+taluka_code='${talukaCode}'` +
-        `+AND+village_code='${villageCode}'+AND+survey_no='${surveyNo}'`,
+      `&request=GetFeature&typeName=cadastral&outputFormat=application/json` +
+      `&CQL_FILTER=district_code='${districtCode}'+AND+taluka_code='${talukaCode}'` +
+      `+AND+village_code='${villageCode}'+AND+survey_no='${surveyNo}'`,
       `https://mahabhunakasha.maharashtra.gov.in/api/parcel?state=${stateCode}` +
-        `&district=${districtCode}&taluka=${talukaCode}&village=${villageCode}&survey=${surveyNo}&format=json`,
+      `&district=${districtCode}&taluka=${talukaCode}&village=${villageCode}&survey=${surveyNo}&format=json`,
     ];
 
     for (const url of urls) {
       try {
         console.log('[MBN API] Trying:', url);
-        const res  = await fetch(url, { timeout: 15000 });
+        const res = await fetch(url, { timeout: 15000 });
         if (!res.ok) continue;
         const json = await res.json();
         if (json?.type === 'FeatureCollection' || json?.type === 'Feature')
+          console.log('[MBN DEBUG] normalizedCoords sample:', JSON.stringify(Coords?.slice(0, 2)));
           return { success: true, featureJson: json, reason: null };
       } catch (e) { console.warn('[MBN API] Failed:', e.message); }
     }

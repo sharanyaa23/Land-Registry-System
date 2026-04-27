@@ -1,11 +1,3 @@
-/**
- * @file polygon.controller.js
- * @description This controller handles incoming HTTP requests, processes business logic, and returns API responses.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 // src/controllers/polygon.controller.js
 const asyncHandler = require('../utils/asyncHandler');
 const Polygon = require('../models/Polygon.model');
@@ -102,40 +94,6 @@ exports.savePolygon = asyncHandler(async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// PUT /polygon/:id
-// ─────────────────────────────────────────────────────────────
-exports.updatePolygon = asyncHandler(async (req, res) => {
-  const land = await Land.findById(req.params.id);
-  if (!land) return res.status(404).json({ success: false, error: 'Land not found' });
-
-  if (land.owner.toString() !== req.userId.toString()) {
-    return res.status(403).json({ success: false, error: 'Not the owner' });
-  }
-
-  const { geoJson } = req.body;
-  
-  let polygon = await Polygon.findOne({ land: land._id }).sort({ createdAt: -1 });
-  if (!polygon) {
-    return res.status(404).json({ success: false, error: 'Polygon not found' });
-  }
-
-  polygon.geoJson = geoJson;
-  
-  if (turfArea) {
-    const feature = geoJson.type === 'Feature' ? geoJson : {
-      type: 'Feature',
-      geometry: geoJson,
-      properties: {}
-    };
-    polygon.areaSqm = turfArea(feature);
-  }
-
-  await polygon.save();
-  logger.info('Polygon updated manually', { landId: land._id });
-  res.json({ success: true, polygon });
-});
-
-// ─────────────────────────────────────────────────────────────
 // GET /land/:id/polygon
 // ─────────────────────────────────────────────────────────────
 exports.getPolygon = asyncHandler(async (req, res) => {
@@ -161,36 +119,117 @@ exports.validatePolygon = asyncHandler(async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 // POST /polygon/from-mahabhunaksha
 // ─────────────────────────────────────────────────────────────
+// polygon.controller.js  — fromMahabhunaksha
+
+// polygon.controller.js — top of file, keep existing imports, just remove any marathiName reference
+
 exports.fromMahabhunaksha = asyncHandler(async (req, res) => {
   const {
-    landId,       // optional — if omitted, a new Land is auto-created
-    district,
-    taluka,
-    village,
+    landId,
+    districtValue,
+    talukaValue,
+    villageValue,
+    district:  districtNameFallback = '',
+    taluka:    talukaNameFallback   = '',
+    village:   villageNameFallback  = '',
     surveyNo,
-    ownerName,    // required only when landId is not provided
-    area,         // optional, in hectares
-    khataNo       // optional, stored in location.gatNumber
+    ownerName,
+    area,
+    khataNo
   } = req.body;
+
+  const cleanDistrictValue = String(districtValue).replace(/^0+/, '') || districtValue;
+  const cleanTalukaValue   = String(talukaValue).replace(/^0+/, '')   || talukaValue;
+  const cleanVillageValue  = villageValue;
+
+  const marathiDistrict = districtNameFallback;
+  const marathiTaluka   = talukaNameFallback;
+  const marathiVillage  = villageNameFallback;
 
   let land;
 
-  // ── Case 1: Attach to existing Land ──────────────────────────
   if (landId) {
+    // ── Case 1: Attach to existing Land ────────────────────────
     land = await Land.findById(landId);
-    if (!land) {
-      return res.status(404).json({ success: false, error: 'Land not found' });
-    }
+    if (!land) return res.status(404).json({ success: false, error: 'Land not found' });
     if (land.owner.toString() !== req.userId.toString()) {
       return res.status(403).json({ success: false, error: 'Not the owner' });
     }
-  }
-  // ── Case 2: Auto-create a new Land (Mahabhunaksha-first flow) ─
-  else {
-    if (!ownerName || !ownerName.trim()) {
+
+    // ── Duplicate polygon check for existing land ───────────────
+    // If this land already has a polygon from Mahabhunaksha, return it
+    const existingPolygon = await Polygon.findOne({
+      land:    land._id,
+      source:  'mahabhunaksha',
+      skipped: false
+    }).sort({ createdAt: -1 });
+
+    if (existingPolygon) {
+      logger.info('Polygon already exists for land, returning cached', {
+        landId: land._id,
+        polygonId: existingPolygon._id
+      });
+      return res.status(200).json({
+        success:  true,
+        message:  'Polygon already exists for this land',
+        cached:   true,
+        data: {
+          landId:     land._id,
+          polygonId:  existingPolygon._id,
+          surveyCode: existingPolygon.surveyCode || land.location.surveyNumber,
+          plotNo:     existingPolygon.plotNo     || null,
+          areaSqm:    existingPolygon.areaSqm,
+          isNewLand:  false
+        }
+      });
+    }
+
+    // Back-fill codes + names on existing land if missing
+    if (!land.location.districtValue) land.location.districtValue = cleanDistrictValue;
+    if (!land.location.talukaValue)   land.location.talukaValue   = cleanTalukaValue;
+    if (!land.location.villageValue)  land.location.villageValue  = cleanVillageValue;
+    if (!land.location.district)      land.location.district      = marathiDistrict;
+    if (!land.location.taluka)        land.location.taluka        = marathiTaluka;
+    if (!land.location.village)       land.location.village       = marathiVillage;
+
+  } else {
+    // ── Case 2: Auto-create new Land ───────────────────────────
+
+    if (!ownerName?.trim()) {
       return res.status(400).json({
         success: false,
         error: 'ownerName is required when landId is not provided'
+      });
+    }
+
+    // ── Duplicate survey number check (same owner + same surveyNo) ──
+    const duplicateLand = await Land.findOne({
+      owner:                   req.userId,
+      'location.surveyNumber': surveyNo?.trim()
+    });
+
+    if (duplicateLand) {
+      // Check if it already has a Mahabhunaksha polygon too
+      const existingPolygon = await Polygon.findOne({
+        land:    duplicateLand._id,
+        source:  'mahabhunaksha',
+        skipped: false
+      }).sort({ createdAt: -1 });
+
+      logger.info('Duplicate survey number detected in fromMahabhunaksha', {
+        surveyNo,
+        existingLandId: duplicateLand._id
+      });
+
+      return res.status(409).json({
+        success:    false,
+        duplicate:  true,
+        error:      'A land with survey number "' + surveyNo + '" already exists',
+        existingLandId:    duplicateLand._id,
+        existingPolygonId: existingPolygon ? existingPolygon._id : null,
+        suggestion: existingPolygon
+          ? 'This land already has a polygon. Use landId to view or re-fetch it.'
+          : 'Pass landId: "' + duplicateLand._id + '" to attach a polygon to this existing land.'
       });
     }
 
@@ -198,11 +237,14 @@ exports.fromMahabhunaksha = asyncHandler(async (req, res) => {
       owner: req.userId,
       status: 'draft',
       location: {
-        district,
-        taluka,
-        village: village.trim(),
-        surveyNumber: surveyNo,
-        gatNumber: khataNo || null
+        district:      marathiDistrict,
+        districtValue: cleanDistrictValue,
+        taluka:        marathiTaluka,
+        talukaValue:   cleanTalukaValue,
+        village:       marathiVillage,
+        villageValue:  cleanVillageValue,
+        surveyNumber:  surveyNo,
+        gatNumber:     khataNo || null
       },
       area: {
         value: area ? parseFloat(area) : 0,
@@ -212,26 +254,23 @@ exports.fromMahabhunaksha = asyncHandler(async (req, res) => {
       legacyFlag: false
     });
 
-    logger.info('New Land auto-created from Mahabhunaksha', {
-      landId: land._id,
-      surveyNo
-    });
+    logger.info('New Land auto-created from Mahabhunaksha', { landId: land._id, surveyNo });
   }
 
   // ── Scrape Mahabhunaksha ──────────────────────────────────────
   let mbnData;
   try {
     mbnData = await mahabhunakshaService.getPlotDetails({
-      district,
-      taluka,
-      village,
+      district: cleanDistrictValue,
+      taluka:   cleanTalukaValue,
+      village:  cleanVillageValue,
       surveyNo
     });
   } catch (err) {
     logger.error('Mahabhunaksha scraping failed', err);
     return res.status(502).json({
       success: false,
-      error: 'Failed to fetch data from Mahabhunaksha',
+      error:   'Failed to fetch data from Mahabhunaksha',
       details: err.message
     });
   }
@@ -239,79 +278,68 @@ exports.fromMahabhunaksha = asyncHandler(async (req, res) => {
   if (!mbnData?.vertices?.length) {
     return res.status(400).json({
       success: false,
-      error: 'No plot geometry returned from Mahabhunaksha',
+      error:   'No plot geometry returned from Mahabhunaksha',
       surveyNo
     });
   }
+  const isBboxFallback = mbnData.bboxFallback === true;
 
-  // ── Build GeoJSON ─────────────────────────────────────────────
   const geoJson = geojsonService.fromMahabhunakshaVertices(mbnData.vertices, {
-    plotNo: mbnData.plotNo,
+    plotNo:     mbnData.plotNo,
     surveyCode: mbnData.surveyCode,
-    village,
-    taluka,
-    district,
-    source: 'mahabhunaksha'
+    village:    marathiVillage,
+    taluka:     marathiTaluka,
+    district:   marathiDistrict,
+    source:     'mahabhunaksha'
   });
 
-  // ── Generate KML ──────────────────────────────────────────────
   const kmlResult = await kmlService.generateKml(geoJson, {
-    plotNo: mbnData.plotNo,
+    plotNo:     mbnData.plotNo,
     surveyCode: mbnData.surveyCode,
-    village,
-    taluka,
-    district
+    village:    marathiVillage,
+    taluka:     marathiTaluka,
+    district:   marathiDistrict
   });
 
-  // ── Pin KML to IPFS ───────────────────────────────────────────
-  const kmlCID = await ipfsPinService.pinBuffer(
-    kmlResult.buffer,
-    kmlResult.filename
-  );
+  const kmlCID = await ipfsPinService.pinBuffer(kmlResult.buffer, kmlResult.filename);
 
-  // ── Save Polygon ──────────────────────────────────────────────
   const polygon = await geojsonService.savePolygon({
-    landId: land._id,
+    landId:       land._id,
     geoJson,
     kmlCID,
-    surveyCode: mbnData.surveyCode,
-    vertices: mbnData.vertices,
-    sourceCRS: mbnData.sourceCRS || 'WGS84',
-    areaSqm: geojsonService.computeArea(geoJson),
-    plotNo: mbnData.plotNo,
+    surveyCode:   mbnData.surveyCode,
+    vertices:     mbnData.vertices,
+    sourceCRS:    mbnData.sourceCRS || 'WGS84',
+    areaSqm:      geojsonService.computeArea(geoJson),
+    plotNo:       mbnData.plotNo,
     measurements: mbnData.measurements,
-    scrapedAt: new Date()
+    scrapedAt:    new Date()
   });
 
-  // ── Update Land document ──────────────────────────────────────
   land.documents = land.documents || {};
   land.documents.polygonGeoJsonCID = polygon.ipfsCID || null;
   land.documents.kmlCID = kmlCID;
 
-  // Back-fill surveyNumber from scraped data if missing
   if (!land.location.surveyNumber) {
     land.location.surveyNumber = mbnData.surveyCode || surveyNo;
   }
-
-  // Back-fill area from scraped data if it was set to 0
   if (!land.area.value && mbnData.area) {
     land.area.value = parseFloat(mbnData.area) || 0;
   }
 
   await land.save();
 
-  // ── Build Bhuvan preview config ───────────────────────────────
   const bhuvanConfig = bhuvanService.buildOverlayConfig(geoJson, {
-    plotNo: mbnData.plotNo,
+    plotNo:     mbnData.plotNo,
     surveyCode: mbnData.surveyCode,
-    village,
-    taluka,
-    district,
-    area: `${(polygon.areaSqm / 10000).toFixed(4)} ha`
+    village:    marathiVillage,
+    taluka:     marathiTaluka,
+    district:   marathiDistrict,
+    area:       `${(polygon.areaSqm / 10000).toFixed(4)} ha`
   });
 
   logger.info('Polygon created from Mahabhunaksha', {
-    landId: land._id,
+    landId:    land._id,
     surveyCode: mbnData.surveyCode,
     polygonId: polygon._id,
     isNewLand: !landId,
@@ -324,14 +352,18 @@ exports.fromMahabhunaksha = asyncHandler(async (req, res) => {
       ? 'Polygon attached successfully'
       : 'New land + polygon created successfully',
     data: {
-      landId: land._id,
-      polygonId: polygon._id,
-      surveyCode: mbnData.surveyCode,
-      plotNo: mbnData.plotNo,
-      vertexCount: mbnData.vertices.length,
-      areaSqm: polygon.areaSqm,
-      bhuvanPreview: bhuvanConfig,
+      landId:          land._id,
+      polygonId:       polygon._id,
+      surveyCode:      mbnData.surveyCode,
+      plotNo:          mbnData.plotNo,
+      vertexCount:     mbnData.vertices.length,
+      areaSqm:         polygon.areaSqm,
+      bhuvanPreview:   bhuvanConfig,
       kmlCID,
+      geometrySource:  isBboxFallback ? 'extent_bbox' : 'scraped',
+      geometryWarning: isBboxFallback
+        ? 'Boundary is an approximate bounding box — exact cadastral shape unavailable'
+        : null,
       isNewLand: !landId
     }
   });
@@ -350,12 +382,12 @@ exports.getBhuvanPreview = asyncHandler(async (req, res) => {
   }
 
   const meta = {
-    plotNo:    polygon.plotNo    || 'N/A',
+    plotNo: polygon.geoJson.properties.plotNo|| 'N/A',
     surveyCode: polygon.surveyCode || 'N/A',
-    village:   polygon.geoJson.properties?.village,
-    taluka:    polygon.geoJson.properties?.taluka,
-    district:  polygon.geoJson.properties?.district,
-    area:      polygon.areaSqm ? `${(polygon.areaSqm / 10000).toFixed(4)} ha` : '0.0000 ha'
+    village: polygon.geoJson.properties?.village,
+    taluka: polygon.geoJson.properties?.taluka,
+    district: polygon.geoJson.properties?.district,
+    area: polygon.areaSqm ? `${(polygon.areaSqm / 10000).toFixed(4)} ha` : '0.0000 ha'
   };
 
   const previewConfig = bhuvanService.buildOverlayConfig(polygon.geoJson, meta);
@@ -375,11 +407,11 @@ exports.exportKml = asyncHandler(async (req, res) => {
   }
 
   const kmlResult = await kmlService.generateKml(polygon.geoJson, {
-    plotNo:    polygon.plotNo,
+    plotNo: polygon.plotNo,
     surveyCode: polygon.surveyCode,
-    village:   polygon.geoJson.properties?.village,
-    taluka:    polygon.geoJson.properties?.taluka,
-    district:  polygon.geoJson.properties?.district
+    village: polygon.geoJson.properties?.village,
+    taluka: polygon.geoJson.properties?.taluka,
+    district: polygon.geoJson.properties?.district
   });
 
   res.setHeader('Content-Type', kmlResult.contentType || 'application/vnd.google-earth.kml+xml');
@@ -391,11 +423,10 @@ exports.exportKml = asyncHandler(async (req, res) => {
 // EXPORTS
 // ─────────────────────────────────────────────────────────────
 module.exports = {
-  savePolygon:        exports.savePolygon,
-  updatePolygon:      exports.updatePolygon,
-  getPolygon:         exports.getPolygon,
-  validatePolygon:    exports.validatePolygon,
-  fromMahabhunaksha:  exports.fromMahabhunaksha,
-  getBhuvanPreview:   exports.getBhuvanPreview,
-  exportKml:          exports.exportKml
+  savePolygon: exports.savePolygon,
+  getPolygon: exports.getPolygon,
+  validatePolygon: exports.validatePolygon,
+  fromMahabhunaksha: exports.fromMahabhunaksha,
+  getBhuvanPreview: exports.getBhuvanPreview,
+  exportKml: exports.exportKml
 };

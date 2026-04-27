@@ -1,80 +1,187 @@
-/**
- * @file escrow.service.js
- * @description This service handles complex external integrations, background tasks, or specific business operations separate from the controller.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
-const { getContract, getSigner } = require('./contract.service');
+// src/services/blockchain/escrow.service.js
+const { getContractByName, getSigner } = require('./contract.service');
+const { ethers } = require('ethers');
 const logger = require('../../utils/logger');
-const path = require('path');
-
-const ABI_PATH = path.join(__dirname, '../../../contracts/abis/Escrow.json');
-const CONTRACT_ADDRESS = process.env.ESCROW_CONTRACT_ADDRESS || '';
 
 /**
- * Lock funds into the escrow contract.
+ * Buyer locks funds by calling proposeTransfer() on MultiSigTransfer.
+ * Now supports MetaMask signer (no private key needed for local testing).
  */
-exports.lockFunds = async ({ transferId, amount, buyerKey }) => {
-  if (!CONTRACT_ADDRESS) {
-    logger.warn('Escrow contract not deployed');
-    return { txHash: 'not-deployed' };
-  }
-
-  const signer = getSigner(buyerKey);
-  const contract = getContract(ABI_PATH, CONTRACT_ADDRESS, signer);
-  if (!contract) return { txHash: 'abi-empty' };
-
+exports.lockFunds = async ({ landIdBytes32, offChainRef, amountWei, signer }) => {
   try {
-    const tx = await contract.lockFunds(transferId, { value: amount });
+    const activeSigner = signer || (await getSigner());
+
+    const contract = getContractByName('MultiSigTransfer', activeSigner);
+
+    if (!contract) {
+      logger.warn('MultiSigTransfer contract not available');
+      return { txHash: 'not-deployed', proposalId: null };
+    }
+
+    // ✅ amountWei must already be in wei (a string like "1000000000000000000" for 1 POL)
+    // Do NOT call parseEther here — that would double-convert
+    const valueInWei = BigInt(amountWei.toString());
+
+    logger.info('proposeTransfer params', {
+      landIdBytes32,
+      offChainRef,
+      valueInWei: valueInWei.toString()
+    });
+
+    const tx = await contract.proposeTransfer(
+      landIdBytes32,
+      offChainRef,
+      { value: valueInWei } // ✅ raw wei BigInt
+    );
+
     const receipt = await tx.wait();
-    logger.info('Funds locked in escrow', { txHash: tx.hash, amount });
+
+    // Extract proposalId from ProposalCreated event
+    const event = receipt.logs
+      .map(log => {
+        try { return contract.interface.parseLog(log); }
+        catch { return null; }
+      })
+      .find(e => e && e.name === 'ProposalCreated');
+
+    const proposalId = event ? event.args.proposalId.toString() : null;
+
+    logger.info('Funds locked via proposeTransfer', {
+      txHash: tx.hash,
+      proposalId,
+      valueInWei: valueInWei.toString()
+    });
+
+    return { txHash: tx.hash, receipt, proposalId };
+  } catch (err) {
+    logger.error('lockFunds failed', { error: err.message, stack: err.stack });
+    throw new Error(`On-chain lock failed: ${err.message}`);
+  }
+};
+
+/**
+ * Seller submits proposal to officer review.
+ */
+exports.submitToOfficers = async ({ proposalId, offChainCaseRef, sellerWallet }) => {
+  try {
+    let signer;
+
+    if (process.env.BLOCKCHAIN_NETWORK === 'local') {
+      // On local — find the Hardhat signer that matches the seller's wallet
+      const provider = exports.getProvider ? exports.getProvider() : require('./contract.service').getProvider();
+      const accounts = await provider.listAccounts();
+      
+      const matchIndex = accounts.findIndex(
+        acc => acc.address.toLowerCase() === sellerWallet?.toLowerCase()
+      );
+
+      if (matchIndex === -1) {
+        throw new Error(`No local signer found for seller wallet: ${sellerWallet}`);
+      }
+
+      signer = await provider.getSigner(matchIndex);
+    } else {
+      signer = await getSigner(process.env.SELLER_PRIVATE_KEY);
+    }
+
+    console.log('submitToOfficers signer:', await signer.getAddress());
+
+    const contract = getContractByName('MultiSigTransfer', signer);
+    if (!contract) return { txHash: 'not-deployed' };
+
+    const tx      = await contract.submitToOfficers(proposalId, offChainCaseRef);
+    const receipt = await tx.wait();
+
+    const event = receipt.logs
+      .map(log => { try { return contract.interface.parseLog(log); } catch { return null; } })
+      .find(e => e && e.name === 'SubmittedToOfficers');
+
+    const reviewId = event ? event.args.reviewId?.toString() : null;
+
+    logger.info('Submitted to officers on-chain', { txHash: tx.hash, proposalId, reviewId });
+    return { txHash: tx.hash, receipt, reviewId };
+  } catch (err) {
+    logger.error('submitToOfficers failed', { error: err.message });
+    throw new Error(`On-chain submit failed: ${err.message}`);
+  }
+};
+/**
+ * Co-owner approves on-chain (optional - if you want on-chain co-owner approval later)
+ */
+exports.coOwnerApproveOnChain = async ({ proposalId, signer }) => {
+  try {
+    const activeSigner = signer || (await getSigner());
+
+    const contract = getContractByName('MultiSigTransfer', activeSigner);
+    if (!contract) return { txHash: 'not-deployed' };
+
+    const tx = await contract.approveCoOwner(proposalId);
+    const receipt = await tx.wait();
+
+    logger.info('Co-owner approved on-chain', { txHash: tx.hash, proposalId });
     return { txHash: tx.hash, receipt };
   } catch (err) {
-    logger.error('lockFunds failed', { error: err.message });
+    logger.error('coOwnerApproveOnChain failed', { error: err.message });
     throw err;
   }
 };
 
 /**
- * Release escrowed funds to the seller.
+ * Officer approves on-chain (kept privateKey support for officers)
  */
-exports.releaseFunds = async ({ transferId }) => {
-  if (!CONTRACT_ADDRESS) return { txHash: 'not-deployed' };
-
-  const signer = getSigner(process.env.DEPLOYER_PRIVATE_KEY);
-  const contract = getContract(ABI_PATH, CONTRACT_ADDRESS, signer);
-  if (!contract) return { txHash: 'abi-empty' };
-
+exports.officerApproveOnChain = async ({ reviewId, officerPrivateKey }) => {
   try {
-    const tx = await contract.releaseFunds(transferId);
+    const signer = officerPrivateKey 
+      ? await getSigner(officerPrivateKey) 
+      : await getSigner(); // fallback
+
+    const contract = getContractByName('OfficerMultiSig', signer);
+    if (!contract) return { txHash: 'not-deployed' };
+
+    const tx = await contract.approve(reviewId);
     const receipt = await tx.wait();
-    logger.info('Escrow released', { txHash: tx.hash });
+
+    logger.info('Officer approved on-chain', { txHash: tx.hash, reviewId });
     return { txHash: tx.hash, receipt };
   } catch (err) {
-    logger.error('releaseFunds failed', { error: err.message });
+    logger.error('officerApproveOnChain failed', { error: err.message });
     throw err;
   }
 };
 
 /**
- * Refund escrowed funds to the buyer.
+ * Officer rejects on-chain
  */
-exports.refundFunds = async ({ transferId }) => {
-  if (!CONTRACT_ADDRESS) return { txHash: 'not-deployed' };
-
-  const signer = getSigner(process.env.DEPLOYER_PRIVATE_KEY);
-  const contract = getContract(ABI_PATH, CONTRACT_ADDRESS, signer);
-  if (!contract) return { txHash: 'abi-empty' };
-
+exports.officerRejectOnChain = async ({ reviewId, reason, officerPrivateKey }) => {
   try {
-    const tx = await contract.refundFunds(transferId);
+    const signer = officerPrivateKey 
+      ? await getSigner(officerPrivateKey) 
+      : await getSigner();
+
+    const contract = getContractByName('OfficerMultiSig', signer);
+    if (!contract) return { txHash: 'not-deployed' };
+
+    const tx = await contract.reject(reviewId, reason);
     const receipt = await tx.wait();
-    logger.info('Escrow refunded', { txHash: tx.hash });
+
+    logger.info('Officer rejected on-chain', { txHash: tx.hash, reviewId });
     return { txHash: tx.hash, receipt };
   } catch (err) {
-    logger.error('refundFunds failed', { error: err.message });
+    logger.error('officerRejectOnChain failed', { error: err.message });
     throw err;
+  }
+};
+
+/**
+ * Get proposal state
+ */
+exports.getProposal = async (proposalId) => {
+  try {
+    const contract = getContractByName('MultiSigTransfer');
+    if (!contract) return null;
+    return await contract.getProposal(proposalId);
+  } catch (err) {
+    logger.error('getProposal failed', { error: err.message });
+    return null;
   }
 };

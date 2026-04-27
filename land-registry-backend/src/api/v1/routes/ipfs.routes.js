@@ -1,11 +1,3 @@
-/**
- * @file ipfs.routes.js
- * @description This file configures the primary API routing and versioning for the backend.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 const express = require('express');
 const router = express.Router();
 const controller = require('../../../controllers/ipfs.controller');

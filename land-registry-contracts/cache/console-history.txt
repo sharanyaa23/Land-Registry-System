@@ -1,0 +1,30 @@
+await provider.getBalance("0x1017F090c9D72479fED4A02dE0280522425D94EF").then(ethers.formatEther)
+const provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
+await deployer.sendTransaction({ to: "0x387C24987d804372E3C31F030356D80af35Cd8D4", value: ethers.parseEther("100") });
+await deployer.sendTransaction({ to: "0x74732dFBc423839357D9740Cae6e3563236823ef", value: ethers.parseEther("100") });
+await deployer.sendTransaction({ to: "0x926f57CB8B45103157b485051F93Ddf424c01c91", value: ethers.parseEther("100") });
+await deployer.sendTransaction({ to: "0x1017F090c9D72479fED4A02dE0280522425D94EF", value: ethers.parseEther("100") });
+const [deployer] = await ethers.getSigners();
+const { ethers } = require("hardhat");
+});
+  value: ethers.parseEther("100")
+  to: " 0x6eBea10B9a3180ced99F1Dc3e6511f6B6A56232C",
+await deployer.sendTransaction({
+// Officer 3
+});
+  value: ethers.parseEther("100")
+  to: " 0x387C24987d804372E3C31F030356D80af35Cd8D4",
+await deployer.sendTransaction({
+// Officer 2
+});
+  value: ethers.parseEther("100")
+  to: " 0x74732dFBc423839357D9740Cae6e3563236823ef",
+await deployer.sendTransaction({
+// Officer 1
+});
+  value: ethers.parseEther("100")
+  to: " 0x926f57CB8B45103157b485051F93Ddf424c01c91",
+await deployer.sendTransaction({
+// Buyer
+});
+  value: ethers.parseEther("100")

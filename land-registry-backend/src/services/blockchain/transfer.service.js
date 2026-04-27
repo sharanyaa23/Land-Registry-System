@@ -1,33 +1,21 @@
-/**
- * @file transfer.service.js
- * @description This service handles complex external integrations, background tasks, or specific business operations separate from the controller.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
-const { getContract, getSigner } = require('./contract.service');
+// src/services/blockchain/transfer.service.js
+const { getContractByName, getSigner } = require('./contract.service');
 const logger = require('../../utils/logger');
-const path = require('path');
-
-const ABI_PATH = path.join(__dirname, '../../../contracts/abis/TransferManager.json');
-const CONTRACT_ADDRESS = process.env.TRANSFER_MANAGER_ADDRESS || '';
 
 /**
  * Initiate a land transfer on-chain.
  */
 exports.initiateTransfer = async ({ tokenId, seller, buyer, price }) => {
-  if (!CONTRACT_ADDRESS) {
-    logger.warn('TransferManager not deployed — skipping');
-    return { txHash: 'not-deployed' };
-  }
-
-  const signer = getSigner(process.env.DEPLOYER_PRIVATE_KEY);
-  const contract = getContract(ABI_PATH, CONTRACT_ADDRESS, signer);
-  if (!contract) return { txHash: 'abi-empty' };
-
   try {
-    const tx = await contract.initiateTransfer(tokenId, seller, buyer, price);
+    const signer   = await getSigner(process.env.DEPLOYER_PRIVATE_KEY);
+    const contract = getContractByName('MultiSigTransfer', signer);
+
+    if (!contract) {
+      logger.warn('MultiSigTransfer not available — skipping');
+      return { txHash: 'not-deployed' };
+    }
+
+    const tx      = await contract.initiateTransfer(tokenId, seller, buyer, price);
     const receipt = await tx.wait();
     logger.info('Transfer initiated on-chain', { txHash: tx.hash });
     return { txHash: tx.hash, receipt };
@@ -38,18 +26,17 @@ exports.initiateTransfer = async ({ tokenId, seller, buyer, price }) => {
 };
 
 /**
- * Approve a transfer (called by each co-owner or officer).
+ * Approve a transfer (called by each officer).
  */
-exports.approveTransfer = async ({ transferId, signer: signerKey }) => {
-  if (!CONTRACT_ADDRESS) return { txHash: 'not-deployed' };
-
-  const signer = getSigner(signerKey);
-  const contract = getContract(ABI_PATH, CONTRACT_ADDRESS, signer);
-  if (!contract) return { txHash: 'abi-empty' };
-
+exports.approveTransfer = async ({ transferId, signerKey }) => {
   try {
-    const tx = await contract.approveTransfer(transferId);
+    const signer   = await getSigner(signerKey);
+    const contract = getContractByName('MultiSigTransfer', signer);
+    if (!contract) return { txHash: 'not-deployed' };
+
+    const tx      = await contract.approveTransfer(transferId);
     const receipt = await tx.wait();
+    logger.info('Transfer approved on-chain', { txHash: tx.hash, transferId });
     return { txHash: tx.hash, receipt };
   } catch (err) {
     logger.error('approveTransfer failed', { error: err.message });
@@ -61,19 +48,36 @@ exports.approveTransfer = async ({ transferId, signer: signerKey }) => {
  * Complete a transfer after all approvals.
  */
 exports.completeTransfer = async ({ transferId }) => {
-  if (!CONTRACT_ADDRESS) return { txHash: 'not-deployed' };
-
-  const signer = getSigner(process.env.DEPLOYER_PRIVATE_KEY);
-  const contract = getContract(ABI_PATH, CONTRACT_ADDRESS, signer);
-  if (!contract) return { txHash: 'abi-empty' };
-
   try {
-    const tx = await contract.completeTransfer(transferId);
+    const signer   = await getSigner(process.env.DEPLOYER_PRIVATE_KEY);
+    const contract = getContractByName('MultiSigTransfer', signer);
+    if (!contract) return { txHash: 'not-deployed' };
+
+    const tx      = await contract.completeTransfer(transferId);
     const receipt = await tx.wait();
     logger.info('Transfer completed on-chain', { txHash: tx.hash });
     return { txHash: tx.hash, receipt };
   } catch (err) {
     logger.error('completeTransfer failed', { error: err.message });
+    throw err;
+  }
+};
+
+/**
+ * Cancel a transfer proposal.
+ */
+exports.cancelTransfer = async ({ transferId }) => {
+  try {
+    const signer   = await getSigner(process.env.DEPLOYER_PRIVATE_KEY);
+    const contract = getContractByName('MultiSigTransfer', signer);
+    if (!contract) return { txHash: 'not-deployed' };
+
+    const tx      = await contract.cancelProposal(transferId);
+    const receipt = await tx.wait();
+    logger.info('Transfer cancelled on-chain', { txHash: tx.hash });
+    return { txHash: tx.hash, receipt };
+  } catch (err) {
+    logger.error('cancelTransfer failed', { error: err.message });
     throw err;
   }
 };

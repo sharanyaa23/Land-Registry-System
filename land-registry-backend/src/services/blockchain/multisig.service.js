@@ -1,56 +1,60 @@
-/**
- * @file multisig.service.js
- * @description This service handles complex external integrations, background tasks, or specific business operations separate from the controller.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
-const { getContract, getSigner } = require('./contract.service');
+// src/services/blockchain/multisig.service.js
+const { getContractByName, getSigner } = require('./contract.service');
 const logger = require('../../utils/logger');
-const path = require('path');
-
-const ABI_PATH = path.join(__dirname, '../../../contracts/abis/MultiSig.json');
-const CONTRACT_ADDRESS = process.env.MULTISIG_ADDRESS || '';
 
 /**
- * Submit an officer signature to the multi-sig contract.
+ * Submit a freeze/unfreeze proposal via OfficerMultiSig.
  */
-exports.submitSignature = async ({ caseId, decision, officerKey }) => {
-  if (!CONTRACT_ADDRESS) {
-    logger.warn('MultiSig contract not deployed');
-    return { txHash: 'not-deployed' };
-  }
-
-  const signer = getSigner(officerKey);
-  const contract = getContract(ABI_PATH, CONTRACT_ADDRESS, signer);
-  if (!contract) return { txHash: 'abi-empty' };
-
+exports.submitProposal = async ({ tokenId, action, officerKey }) => {
   try {
-    const tx = await contract.submitSignature(caseId, decision === 'approve');
+    const signer   = await getSigner(officerKey);
+    const contract = getContractByName('OfficerMultiSig', signer);
+    if (!contract) return { txHash: 'not-deployed' };
+
+    const tx      = await contract.submitProposal(tokenId, action);
     const receipt = await tx.wait();
-    logger.info('Officer signature submitted', { txHash: tx.hash, caseId });
+    logger.info('Proposal submitted on-chain', { txHash: tx.hash, tokenId, action });
     return { txHash: tx.hash, receipt };
   } catch (err) {
-    logger.error('submitSignature failed', { error: err.message });
+    logger.error('submitProposal failed', { error: err.message });
     throw err;
   }
 };
 
 /**
- * Check if the multi-sig threshold is met for a case.
+ * Confirm a proposal (called by each officer).
  */
-exports.checkThreshold = async ({ caseId }) => {
-  if (!CONTRACT_ADDRESS) return { met: false, reason: 'not-deployed' };
-
-  const contract = getContract(ABI_PATH, CONTRACT_ADDRESS);
-  if (!contract) return { met: false, reason: 'abi-empty' };
-
+exports.confirmProposal = async ({ proposalId, officerKey }) => {
   try {
-    const result = await contract.checkThreshold(caseId);
-    return { met: result, reason: result ? 'threshold-met' : 'pending' };
+    const signer   = await getSigner(officerKey);
+    const contract = getContractByName('OfficerMultiSig', signer);
+    if (!contract) return { txHash: 'not-deployed' };
+
+    const tx      = await contract.confirmProposal(proposalId);
+    const receipt = await tx.wait();
+    logger.info('Proposal confirmed on-chain', { txHash: tx.hash, proposalId });
+    return { txHash: tx.hash, receipt };
   } catch (err) {
-    logger.error('checkThreshold failed', { error: err.message });
-    return { met: false, reason: err.message };
+    logger.error('confirmProposal failed', { error: err.message });
+    throw err;
+  }
+};
+
+/**
+ * Execute a proposal after enough confirmations.
+ */
+exports.executeProposal = async ({ proposalId, officerKey }) => {
+  try {
+    const signer   = await getSigner(officerKey);
+    const contract = getContractByName('OfficerMultiSig', signer);
+    if (!contract) return { txHash: 'not-deployed' };
+
+    const tx      = await contract.executeProposal(proposalId);
+    const receipt = await tx.wait();
+    logger.info('Proposal executed on-chain', { txHash: tx.hash, proposalId });
+    return { txHash: tx.hash, receipt };
+  } catch (err) {
+    logger.error('executeProposal failed', { error: err.message });
+    throw err;
   }
 };

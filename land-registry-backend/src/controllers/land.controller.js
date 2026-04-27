@@ -1,24 +1,3 @@
-/**
- * @file land.controller.js
- * @description Handles all land asset CRUD operations — registration, listing, searching, and updates.
- *
- *              LAND REGISTRATION FLOW:
- *              1. Seller fills the registration form (auto-filled by OCR or manually)
- *              2. POST /land/register creates a new Land document in MongoDB with status 'draft'
- *              3. The frontend then calls the LandRegistry smart contract's registerLand() function
- *                 via MetaMask to record the land on the Polygon blockchain
- *              4. The land status progresses through: draft → documents_uploaded → verification_pending
- *                 → verification_passed (or officer_review if OCR fails) → registered → listed
- *              5. Once 'registered', the land appears on the Buyer Dashboard for purchase
- *
- *              SEARCH & PAGINATION:
- *              - GET /land/search supports filtering by district, taluka, village, status
- *              - Uses cursor-based pagination via the paginateQuery utility
- *
- * NOTE: This file is essential for the backend architecture.
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 const asyncHandler = require('../utils/asyncHandler');
 const Land = require('../models/Land.model');
 const CoOwner = require('../models/CoOwner.model');
@@ -29,6 +8,7 @@ const logger = require('../utils/logger');
 const locationData = require('../data/maharashtra_full.json');
 const { translateToMarathi } = require('../utils/translateToMarathi');
 const axios = require('axios');
+const landService = require('../services/blockchain/land.service');
 
 const cleanMarathi = (name) => (name || '').replace(/^[\d]+\s*/, '').trim();
 
@@ -54,10 +34,10 @@ const marathiName = {
 };
 
 
-const INTERNAL_API_BASE = process.env.INTERNAL_API_BASE || 'http://localhost:5001/api/v1';
+const INTERNAL_API_BASE = process.env.INTERNAL_API_BASE || 'http://localhost:5000/api/v1';
 
 const VERDICT_TO_STATUS = {
-  auto_pass: 'registered',
+  auto_pass: 'verification_passed',
   auto_fail: 'verification_failed',
   officer_review: 'officer_review'
 };
@@ -76,7 +56,7 @@ exports.register = asyncHandler(async (req, res) => {
   console.log('Full URL:', req.originalUrl);
   console.log('Content-Type:', req.get('Content-Type'));
   console.log('Authorization header exists:', !!req.headers.authorization);
-  
+
   console.log('\n=== FULL req.body ===');
   console.dir(req.body, { depth: null });
 
@@ -108,6 +88,17 @@ exports.register = asyncHandler(async (req, res) => {
   }
   if (!surveyNumber?.trim()) {
     return res.status(400).json({ success: false, message: "Survey number is required" });
+  }
+  // ── Duplicate survey number check ──────────────────────────
+  const existing = await Land.findOne({
+    owner: req.userId,
+    'location.surveyNumber': surveyNumber.trim()
+  });
+  if (existing) {
+    return res.status(409).json({
+      success: false,
+      message: `Land with survey number "${surveyNumber.trim()}" is already registered`
+    });
   }
 
   // ==================== CLEAN VALUES (Remove leading zeros) ====================
@@ -191,15 +182,15 @@ exports.register = asyncHandler(async (req, res) => {
   }
 
   // ==================== UPDATE MAIN OWNER NAME ====================
-// ==================== UPDATE MAIN OWNER NAME ====================
-if (marathiOwnerName?.trim()) {
-  const updatedUser = await User.findByIdAndUpdate(
-    req.userId,
-    { $set: { 'profile.fullName': marathiOwnerName.trim() } },
-    { new: true }
-  );
-  console.log('Updated user profile fullName:', updatedUser?.profile?.fullName);
-}
+  // ==================== UPDATE MAIN OWNER NAME ====================
+  if (marathiOwnerName?.trim()) {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      { $set: { 'profile.fullName': marathiOwnerName.trim() } },
+      { new: true }
+    );
+    console.log('Updated user profile fullName:', updatedUser?.profile?.fullName);
+  }
 
   // ==================== AUDIT LOG ====================
   await AuditLog.create({
@@ -256,11 +247,13 @@ if (marathiOwnerName?.trim()) {
       }
     );
 
-    verdict = verifyRes.data?.verdict || null;
+    verdict = verifyRes.data?.verification?.verdict || verifyRes.data?.verdict || null;
     verificationId = verifyRes.data?.verificationId || null;
     landStatus = VERDICT_TO_STATUS[verdict] ?? 'verification_failed';
 
-    await Land.findByIdAndUpdate(land._id, { status: landStatus });
+    if (verificationId) {
+      await Land.findByIdAndUpdate(land._id, { verificationResult: verificationId });
+    }
 
     logger.info('Verification initiated', { landId: land._id, verdict, landStatus });
 
@@ -286,6 +279,128 @@ if (marathiOwnerName?.trim()) {
   return res.status(201).json({
     success: true,
     message: "Land registered successfully",
+    land: updatedLand,
+    verificationStatus: landStatus,
+    verdict,
+    verificationId
+  });
+});
+
+
+
+
+/**
+ * POST /land/:id/register
+ * Register an existing draft land on blockchain (after Mahabhunaksha fetch).
+ */
+exports.registerExisting = asyncHandler(async (req, res) => {
+  const land = await Land.findById(req.params.id);
+  if (!land) return res.status(404).json({ success: false, message: 'Land not found' });
+  if (land.owner.toString() !== req.userId.toString())
+    return res.status(403).json({ success: false, message: 'Not the owner' });
+
+  const {
+    ownerName, area, areaUnit,
+    encumbrances, boundaryDescription,
+    coOwners = [], mobile
+  } = req.body;
+
+  if (!ownerName?.trim())
+    return res.status(400).json({ success: false, message: 'Owner name is required' });
+
+  // Update land fields from form
+  land.area.value = area ? parseFloat(area) : land.area.value;
+  land.area.unit = areaUnit || land.area.unit;
+  land.encumbrances = encumbrances?.trim() || land.encumbrances;
+  land.boundaryDescription = boundaryDescription?.trim() || land.boundaryDescription;
+  land.status = 'verification_pending';
+  await land.save();
+
+  // Translate owner name
+  const marathiOwnerName = await translateToMarathi(ownerName.trim());
+  if (marathiOwnerName?.trim()) {
+    await User.findByIdAndUpdate(req.userId, {
+      $set: { 'profile.fullName': marathiOwnerName.trim() }
+    });
+  }
+
+  // Process co-owners
+  const coOwnerTranslations = await Promise.all(
+    coOwners.map(co => translateToMarathi((co.fullName || co.name || '').trim()))
+  );
+  const coOwnerIds = [];
+  for (let i = 0; i < coOwners.length; i++) {
+    const co = coOwners[i];
+    let userId = null;
+    if (co.walletAddress?.trim()) {
+      const found = await User.findOne({ walletAddress: co.walletAddress.trim().toLowerCase() }).select('_id').lean();
+      if (found) userId = found._id;
+    }
+    const coOwnerDoc = await CoOwner.create({
+      land: land._id,
+      user: userId,
+      fullName: coOwnerTranslations[i] || (co.fullName || co.name || ''),
+      walletAddress: co.walletAddress?.trim().toLowerCase() || null,
+      sharePercent: parseFloat(co.sharePercent) || 0,
+      isOnline: !!userId,
+      nocStatus: 'pending'
+    });
+    coOwnerIds.push(coOwnerDoc._id);
+  }
+  if (coOwnerIds.length > 0) {
+    await Land.findByIdAndUpdate(land._id, { coOwners: coOwnerIds });
+  }
+
+  // Audit log
+  await AuditLog.create({
+    actor: req.userId,
+    action: 'land.register',
+    target: `Land:${land._id}`,
+    details: { surveyNumber: land.location.surveyNumber },
+    ipAddress: req.ip
+  });
+
+  // Call verification
+  let landStatus = 'verification_failed';
+  let verdict = null;
+  let verificationId = null;
+
+  try {
+    const verifyPayload = {
+      landId: String(land._id),
+      districtValue: String(land.location.districtValue || '').replace(/^0+/, ''),
+      talukaValue: String(land.location.talukaValue || '').replace(/^0+/, ''),
+      villageValue: land.location.villageValue,
+      fullSurveyInput: land.location.surveyNumber,
+      mobile: mobile?.trim() || '',
+      ownerName: marathiOwnerName,
+      area: String(land.area.value || 0),
+      district: land.location.district,
+      taluka: land.location.taluka,
+      village: land.location.village
+    };
+
+    const timeoutMs = parseInt(process.env.VERIFY_API_TIMEOUT) || 240000;
+    const verifyRes = await axios.post(
+      `${INTERNAL_API_BASE}/verification/verify`,
+      verifyPayload,
+      { headers: { Authorization: req.headers.authorization || '' }, timeout: timeoutMs }
+    );
+    verdict = verifyRes.data?.verification?.verdict || verifyRes.data?.verdict || null;
+    verificationId = verifyRes.data?.verificationId || null;
+    landStatus = VERDICT_TO_STATUS[verdict] ?? 'verification_failed';
+
+    if (verificationId) {
+      await Land.findByIdAndUpdate(land._id, { verificationResult: verificationId });
+    }
+  } catch (err) {
+    await Land.findByIdAndUpdate(land._id, { status: 'verification_failed', legacyFlag: true }).catch(() => { });
+  }
+
+  const updatedLand = await Land.findById(land._id).populate('coOwners').lean();
+  return res.status(200).json({
+    success: true,
+    message: 'Land registered successfully',
     land: updatedLand,
     verificationStatus: landStatus,
     verdict,
@@ -429,4 +544,84 @@ exports.updateStatus = asyncHandler(async (req, res) => {
   }
 
   res.json({ success: true, land });
+});
+
+exports.listForSale = asyncHandler(async (req, res) => {
+  const { price, currency } = req.body;
+
+  if (!price || parseFloat(price) <= 0) {
+    return res.status(400).json({ success: false, error: 'A valid price is required to list land for sale' });
+  }
+
+  const land = await Land.findById(req.params.id);
+  if (!land) return res.status(404).json({ success: false, error: 'Land not found' });
+
+  if (land.owner.toString() !== req.userId.toString()) {
+    return res.status(403).json({ success: false, error: 'Not the owner' });
+  }
+
+  if (land.status !== 'verification_passed') {
+    return res.status(400).json({ success: false, error: 'Land must be verified before listing' });
+  }
+
+  land.status = 'listed';
+  land.listingPrice = { amount: parseFloat(price), currency: currency || 'POL' };
+  await land.save();
+
+  await AuditLog.create({
+    actor: req.userId,
+    action: 'land.listed',
+    target: `Land:${land._id}`,
+    details: { price, currency },
+    ipAddress: req.ip
+  });
+
+  // Register land on-chain when listed
+  try {
+    const owner = await User.findById(req.userId).select('walletAddress').lean();
+
+    if (!owner?.walletAddress) {
+      logger.warn('Owner has no wallet address — skipping on-chain registration', { landId: land._id });
+    } else if (!process.env.DEPLOYER_PRIVATE_KEY) {
+      logger.warn('DEPLOYER_PRIVATE_KEY not set — skipping on-chain registration', { landId: land._id });
+    } else {
+      // 1. Add seller as registrar (deployer signs this)
+      await landService.addRegistrar(owner.walletAddress);
+
+      // 2. Register land on-chain with IPFS CID
+      const ipfsCID = land.documents?.sevenTwelveCID || 'pending';
+      const result  = await landService.registerLand({
+        landMongoId:     land._id.toString(),
+        ipfsCID,
+        ownerPrivateKey: process.env.DEPLOYER_PRIVATE_KEY, // ✅ deployer signs tx
+        sellerWallet:    owner.walletAddress                // ✅ actual owner stored on-chain
+      });
+
+      if (result.txHash && result.txHash !== 'not-deployed') {
+        // 3. Save bytes32 landId and txHash for later transfer calls
+        await Land.findByIdAndUpdate(land._id, {
+          'blockchain.landIdBytes32':      result.landIdBytes32,
+          'blockchain.registrationTxHash': result.txHash
+        });
+        logger.info('Land registered on-chain', {
+          landId:       land._id,
+          txHash:       result.txHash,
+          landIdBytes32: result.landIdBytes32,
+          sellerWallet: owner.walletAddress
+        });
+      } else {
+        logger.warn('LandRegistry contract not deployed — skipping on-chain registration', { landId: land._id });
+      }
+    }
+  } catch (err) {
+    // Don't fail the listing — log and continue
+    logger.warn('On-chain registration failed, proceeding off-chain only', {
+      landId: land._id,
+      error:  err.message
+    });
+  }
+
+  const updatedLand = await Land.findById(land._id).populate('coOwners').lean();
+
+  res.json({ success: true, land: updatedLand });
 });

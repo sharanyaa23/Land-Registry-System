@@ -1,23 +1,3 @@
-/**
- * @file transfer.controller.js
- * @description Handles the complete lifecycle of land transfer requests between buyer and seller.
- *
- *              TRANSFER WORKFLOW (Escrow-based):
- *              1. Buyer selects a land parcel on the Buyer Dashboard and clicks "Initiate Transfer"
- *              2. POST /transfer/offer creates a TransferRequest in MongoDB with status 'offer_sent'
- *              3. The buyer's MetaMask wallet sends the exact POL price to the MultiSigTransfer
- *                 smart contract, which locks the funds in escrow on the Polygon blockchain
- *              4. The seller and co-owners are notified and must provide NOC (No Objection Certificate)
- *              5. Once all approvals are collected, the smart contract releases funds to the seller
- *              6. The land ownership is transferred on-chain via LandRegistry.transferLand()
- *
- *              This controller handles steps 2 and 4 (MongoDB side).
- *              Steps 3, 5, 6 happen on the blockchain via the frontend's ethers.js integration.
- *
- * NOTE: This file is essential for the backend architecture.
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 const asyncHandler = require('../utils/asyncHandler');
 const TransferRequest = require('../models/TransferRequest.model');
 const Land = require('../models/Land.model');
@@ -27,18 +7,27 @@ const Notification = require('../models/Notification.model');
 const AuditLog = require('../models/AuditLog.model');
 const paginate = require('../utils/paginateQuery');
 const logger = require('../utils/logger');
+const User = require('../models/User.model');
+const escrowService = require('../services/blockchain/escrow.service');
+const { toLandIdBytes32,getLand } = require('../services/blockchain/land.service');
+const { ethers } = require('ethers');
+
+// Helper: convert MongoDB _id to bytes32
+const toBytes32 = (mongoId) => {
+  return ethers.encodeBytes32String(mongoId.toString().slice(0, 31));
+};
 
 /**
  * POST /transfer/offer
- * Buyer submits a transfer offer for a listed land.
+ * Buyer submits offer (off-chain only — funds locked later at lock-funds step)
  */
 exports.createOffer = asyncHandler(async (req, res) => {
-  const { landId, price, currency } = req.body;
+  const { landId } = req.body;
 
   const land = await Land.findById(landId);
   if (!land) return res.status(404).json({ success: false, error: 'Land not found' });
 
-  if (!['registered', 'listed'].includes(land.status)) {
+  if (!['verification_passed', 'listed'].includes(land.status)) {
     return res.status(400).json({ success: false, error: 'Land is not available for transfer' });
   }
 
@@ -46,66 +35,51 @@ exports.createOffer = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, error: 'Cannot buy your own land' });
   }
 
-  // Build co-owner consent array - handle co-owners as ObjectIds directly
-  const coOwnerConsents = (land.coOwners || []).map(coOwnerId => ({
-    coOwner: coOwnerId,
-    status: 'pending'
-  }));
+  const price    = land.listingPrice?.amount;
+  const currency = land.listingPrice?.currency || 'POL';
+
+  if (!price) {
+    return res.status(400).json({ success: false, error: 'Land does not have a listing price set' });
+  }
 
   const transfer = await TransferRequest.create({
     land: land._id,
     seller: land.owner,
     buyer: req.userId,
-    price: { amount: price, currency: currency || 'POL' },
+    price: { amount: price, currency },
     status: 'offer_sent',
-    coOwnerConsents
+    coOwnerConsents: []
   });
 
-  // Update land status
   land.status = 'transfer_pending';
   await land.save();
 
-  // Notify seller
   await Notification.create({
     user: land.owner,
     type: 'transfer_offer',
     title: 'New Transfer Offer',
-    message: `A buyer has offered ${price} ${currency || 'POL'} for your land.`,
+    message: `A buyer has offered ${price} ${currency} for your land.`,
     metadata: { transferId: transfer._id, landId: land._id }
   });
-
-  // Notify co-owners
-  for (const co of land.coOwners) {
-    if (co.user) {
-      await Notification.create({
-        user: co.user,
-        type: 'noc_request',
-        title: 'NOC Required',
-        message: `A transfer request has been made for land you co-own. Your NOC is required.`,
-        metadata: { transferId: transfer._id, landId: land._id, coOwnerId: co._id }
-      });
-    }
-  }
 
   await AuditLog.create({
     actor: req.userId,
     action: 'transfer.offer',
     target: `TransferRequest:${transfer._id}`,
-    details: { landId, price },
+    details: { landId, price, currency },
     ipAddress: req.ip
   });
 
   logger.info('Transfer offer created', { transferId: transfer._id });
-
   res.status(201).json({ success: true, transfer });
 });
 
 /**
  * POST /transfer/:id/accept
- * Seller accepts the transfer offer.
+ * Seller accepts offer. If co-owners exist → coowner_consent_pending, else → offer_accepted.
  */
 exports.acceptOffer = asyncHandler(async (req, res) => {
-  const transfer = await TransferRequest.findById(req.params.id);
+  const transfer = await TransferRequest.findById(req.params.id).populate('land');
   if (!transfer) return res.status(404).json({ success: false, error: 'Transfer not found' });
 
   if (transfer.seller.toString() !== req.userId.toString()) {
@@ -116,21 +90,44 @@ exports.acceptOffer = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, error: `Cannot accept from status: ${transfer.status}` });
   }
 
-  transfer.status = transfer.coOwnerConsents.length > 0
+  const land     = transfer.land;
+  const coOwners = await CoOwner.find({ land: land._id });
 
-    ? 'coowner_consent_pending'
-    : 'approved';  // No co-owners = direct approval
+  if (coOwners.length > 0) {
+    transfer.coOwnerConsents = coOwners.map(co => ({
+      coOwner: co._id,
+      status: 'pending'
+    }));
+    transfer.status = 'coowner_consent_pending';
+  } else {
+    transfer.status = 'offer_accepted';
+  }
 
   await transfer.save();
 
-  // Notify buyer
   await Notification.create({
     user: transfer.buyer,
     type: 'transfer_offer',
     title: 'Offer Accepted',
-    message: 'The seller has accepted your transfer offer.',
+    message: coOwners.length > 0
+      ? 'The seller accepted your offer. Waiting for co-owner consents.'
+      : 'The seller accepted your offer. Please lock your funds to proceed.',
     metadata: { transferId: transfer._id }
   });
+
+  for (const co of coOwners) {
+    if (!co.walletAddress) continue;
+    const coOwnerUser = await User.findOne({ walletAddress: co.walletAddress.toLowerCase() });
+    if (!coOwnerUser) continue;
+
+    await Notification.create({
+      user: coOwnerUser._id,
+      type: 'noc_request',
+      title: 'NOC Required',
+      message: 'The owner accepted a transfer offer. Your consent is required.',
+      metadata: { transferId: transfer._id, landId: land._id, coOwnerId: co._id }
+    });
+  }
 
   res.json({ success: true, transfer });
 });
@@ -150,24 +147,389 @@ exports.rejectOffer = asyncHandler(async (req, res) => {
   transfer.status = 'rejected';
   await transfer.save();
 
-  // Restore land status
   await Land.findByIdAndUpdate(transfer.land, { $set: { status: 'listed' } });
-
   res.json({ success: true, transfer });
 });
 
 /**
+ * POST /transfer/:id/coowner-consent
+ * Co-owner approves or rejects off-chain. On all approved → offer_accepted.
+ */
+exports.coownerConsent = asyncHandler(async (req, res) => {
+  const { approve, coOwnerId } = req.body;
+
+  const transfer = await TransferRequest.findById(req.params.id);
+  if (!transfer) return res.status(404).json({ success: false, error: 'Transfer not found' });
+
+  if (transfer.status !== 'coowner_consent_pending') {
+    return res.status(400).json({ success: false, error: `Cannot consent from status: ${transfer.status}` });
+  }
+
+  const currentUser = await User.findById(req.userId);
+  if (!currentUser) return res.status(404).json({ success: false, error: 'User not found' });
+
+  let consent = null;
+  let matchedCoOwner = null;
+
+  for (const c of transfer.coOwnerConsents) {
+    const coOwner = await CoOwner.findById(c.coOwner);
+    if (!coOwner) continue;
+
+    const walletMatch =
+      coOwner.walletAddress &&
+      currentUser.walletAddress &&
+      coOwner.walletAddress.toLowerCase() === currentUser.walletAddress.toLowerCase();
+
+    const idMatch =
+      coOwnerId &&
+      c.coOwner.toString() === (typeof coOwnerId === 'object' ? coOwnerId?._id?.toString() : coOwnerId);
+
+    if (walletMatch || idMatch) {
+      consent = c;
+      matchedCoOwner = coOwner;
+      break;
+    }
+  }
+
+  if (!consent || !matchedCoOwner) {
+    return res.status(404).json({ success: false, error: 'Co-owner consent entry not found' });
+  }
+
+  if (consent.status !== 'pending') {
+    return res.status(400).json({ success: false, error: `Consent already ${consent.status}` });
+  }
+
+  if (!approve) {
+    consent.status  = 'rejected';
+    transfer.status = 'cancelled';
+    await transfer.save();
+    await Land.findByIdAndUpdate(transfer.land, { $set: { status: 'listed' } });
+
+    for (const userId of [transfer.seller, transfer.buyer]) {
+      await Notification.create({
+        user: userId,
+        type: 'transfer_offer',
+        title: 'Transfer Cancelled',
+        message: 'A co-owner rejected the transfer.',
+        metadata: { transferId: transfer._id }
+      });
+    }
+
+    return res.json({ success: true, message: 'Co-owner rejected. Transfer cancelled.', transfer });
+  }
+
+  consent.status   = 'approved';
+  consent.signedAt = new Date();
+
+  if (!matchedCoOwner.isOnline || matchedCoOwner.nocStatus === 'offline_uploaded') {
+    transfer.hasOfflineCoOwner = true;
+  }
+
+  const allApproved = transfer.coOwnerConsents.every(c => c.status === 'approved');
+
+  if (allApproved) {
+    transfer.status = 'offer_accepted';
+
+    await Notification.create({
+      user: transfer.buyer,
+      type: 'transfer_offer',
+      title: 'All Co-owners Approved',
+      message: 'All co-owners approved. Please lock your funds to proceed.',
+      metadata: { transferId: transfer._id }
+    });
+  }
+
+  await transfer.save();
+
+  res.json({
+    success: true,
+    message: allApproved
+      ? 'All co-owners approved. Awaiting buyer fund deposit.'
+      : 'Consent recorded. Awaiting remaining co-owners.',
+    transfer
+  });
+});
+
+/**
+ * POST /transfer/:id/lock-funds
+ * Buyer locks funds ON-CHAIN via MultiSigTransfer.proposeTransfer().
+ */
+exports.lockFunds = asyncHandler(async (req, res) => {
+  const { amountWei } = req.body;
+
+  const transfer = await TransferRequest.findById(req.params.id);
+  if (!transfer) return res.status(404).json({ success: false, error: 'Transfer not found' });
+
+  if (transfer.buyer.toString() !== req.userId.toString()) {
+    return res.status(403).json({ success: false, error: 'Only the buyer can lock funds' });
+  }
+
+  if (transfer.status !== 'offer_accepted') {
+    return res.status(400).json({ success: false, error: `Cannot lock funds from status: ${transfer.status}` });
+  }
+
+  const landIdBytes32 = toLandIdBytes32(transfer.land.toString());
+  const offChainRef   = toLandIdBytes32(transfer._id.toString());
+
+  // Verify land is actually registered on-chain before attempting escrow
+  const onChainLand = await getLand(transfer.land.toString());
+  if (!onChainLand || !onChainLand._exists) {
+    return res.status(400).json({
+      success: false,
+      error: 'Land is not registered on-chain. Cannot lock funds.'
+    });
+  }
+
+
+  const { ethers } = require('ethers');
+  const priceWei = amountWei
+    || ethers.parseEther(transfer.price.amount.toString()).toString();
+
+  let escrowResult = { txHash: 'not-deployed', proposalId: null };
+  try {
+    escrowResult = await escrowService.lockFunds({
+      landIdBytes32,
+      offChainRef,
+      amountWei: priceWei  
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: 'On-chain fund lock failed: ' + err.message });
+  }
+
+  transfer.escrow = {
+    txHash:       escrowResult.txHash,
+    lockedAmount: transfer.price.amount,
+    status:       'locked',
+    proposalId:   escrowResult.proposalId
+  };
+  transfer.status        = 'escrow_locked';
+  transfer.fundsLockedAt = new Date();
+
+  await transfer.save();
+
+  await Notification.create({
+    user:     transfer.seller,
+    type:     'transfer_offer',
+    title:    'Funds Locked',
+    message:  'The buyer locked funds in escrow. Please submit for officer review.',
+    metadata: { transferId: transfer._id }
+  });
+
+  await AuditLog.create({
+    actor:     req.userId,
+    action:    'transfer.lockFunds',
+    target:    `TransferRequest:${transfer._id}`,
+    details:   { txHash: escrowResult.txHash, proposalId: escrowResult.proposalId },
+    ipAddress: req.ip
+  });
+
+  res.json({ success: true, message: 'Funds locked on-chain.', transfer });
+});
+
+/**
+ * POST /transfer/:id/submit-officers
+ * Seller submits to officer review ON-CHAIN via MultiSigTransfer.submitToOfficers().
+ * Idempotent — reuses existing OfficerCase if already created (prevents duplicate key error).
+ */
+exports.submitToOfficers = asyncHandler(async (req, res) => {
+  const transfer = await TransferRequest.findById(req.params.id);
+  if (!transfer) return res.status(404).json({ success: false, error: 'Transfer not found' });
+
+  if (transfer.seller.toString() !== req.userId.toString()) {
+    return res.status(403).json({ success: false, error: 'Only the seller can submit to officers' });
+  }
+
+  if (transfer.status !== 'escrow_locked') {
+    return res.status(400).json({ success: false, error: `Cannot submit from status: ${transfer.status}` });
+  }
+
+  if (!transfer.escrow?.proposalId) {
+    return res.status(400).json({ success: false, error: 'No on-chain proposalId found. Was lock-funds called?' });
+  }
+
+  // Get seller wallet address for local signer lookup
+  const seller = await User.findById(req.userId).select('walletAddress').lean();
+  if (!seller?.walletAddress) {
+    return res.status(400).json({ success: false, error: 'Seller wallet address not found' });
+  }
+
+  // ✅ Idempotent: reuse existing OfficerCase if present — prevents duplicate key error on retry
+  let officerCase = await OfficerCase.findOne({ transferRequest: transfer._id });
+  let isNewCase   = false;
+
+  if (!officerCase) {
+    officerCase = await OfficerCase.create({
+      land: transfer.land,
+      transferRequest: transfer._id,
+      type: 'transfer_review',
+      status: 'queued',
+      hasOfflineCoOwner: transfer.hasOfflineCoOwner || false
+    });
+    isNewCase = true;
+  }
+
+  const offChainCaseRef = toBytes32(officerCase._id.toString());
+
+  // Submit on-chain — returns reviewId from SubmittedToOfficers event
+  let result = { txHash: 'not-deployed', reviewId: null };
+  try {
+    result = await escrowService.submitToOfficers({
+      proposalId: transfer.escrow.proposalId,
+      offChainCaseRef,
+      sellerWallet: seller.walletAddress
+    });
+  } catch (err) {
+    // Only delete case if we just created it and nothing was saved yet
+    if (isNewCase && !officerCase.onChainReviewId) {
+      await OfficerCase.findByIdAndDelete(officerCase._id);
+    }
+    return res.status(500).json({ success: false, error: 'On-chain submit failed: ' + err.message });
+  }
+
+  // Save reviewId — read later by officerDecision from OfficerCase.onChainReviewId
+  officerCase.onChainReviewId = result.reviewId;
+  await officerCase.save();
+
+  transfer.officerCase         = officerCase._id;
+  transfer.status              = 'officer_review';
+  transfer.escrow.submitTxHash = result.txHash;
+  await transfer.save();
+
+  await Notification.create({
+    user: transfer.buyer,
+    type: 'transfer_offer',
+    title: 'Under Officer Review',
+    message: 'The transfer has been submitted for officer review.',
+    metadata: { transferId: transfer._id }
+  });
+
+  await AuditLog.create({
+    actor: req.userId,
+    action: 'transfer.submitToOfficers',
+    target: `TransferRequest:${transfer._id}`,
+    details: { txHash: result.txHash, reviewId: result.reviewId, officerCaseId: officerCase._id },
+    ipAddress: req.ip
+  });
+
+  res.json({ success: true, message: 'Submitted for officer review.', transfer, officerCase });
+});
+
+/**
+ * POST /transfer/:id/officer-decision
+ * Officer approves or rejects ON-CHAIN.
+ * reviewId is read from OfficerCase.onChainReviewId — never from request body.
+ */
+exports.officerDecision = asyncHandler(async (req, res) => {
+  const { approve, reason, officerPrivateKey } = req.body;
+
+  const transfer = await TransferRequest.findById(req.params.id);
+  if (!transfer) return res.status(404).json({ success: false, error: 'Transfer not found' });
+
+  if (transfer.status !== 'officer_review') {
+    return res.status(400).json({ success: false, error: `Transfer not in officer review. Status: ${transfer.status}` });
+  }
+
+  const officerCase = await OfficerCase.findById(transfer.officerCase);
+  if (!officerCase) return res.status(404).json({ success: false, error: 'Officer case not found' });
+
+  // reviewId comes from DB — saved at submitToOfficers time from SubmittedToOfficers event
+  const reviewId = officerCase.onChainReviewId;
+  if (!reviewId) {
+    return res.status(400).json({ success: false, error: 'No on-chain review ID found. Was submitToOfficers called?' });
+  }
+
+  let result = { txHash: 'not-deployed' };
+
+  if (approve) {
+    try {
+      result = await escrowService.officerApproveOnChain({ reviewId, officerPrivateKey });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: 'On-chain approval failed: ' + err.message });
+    }
+
+    transfer.status         = 'completed';
+    transfer.escrow.status  = 'released';
+    transfer.resolvedAt     = new Date();
+    transfer.transferTxHash = result.txHash;
+    officerCase.status      = 'approved';
+    officerCase.resolvedAt  = new Date();
+
+    await Land.findByIdAndUpdate(transfer.land, {
+      $set: { owner: transfer.buyer, status: 'transferred', coOwners: [] }
+    });
+
+    for (const userId of [transfer.seller, transfer.buyer]) {
+      await Notification.create({
+        user: userId,
+        type: 'transfer_complete',
+        title: 'Transfer Approved',
+        message: userId.toString() === transfer.seller.toString()
+          ? 'Officer approved. Funds have been released to you.'
+          : 'Officer approved. Land ownership transferred to you.',
+        metadata: { transferId: transfer._id }
+      });
+    }
+
+    logger.info('Officer approved transfer on-chain', { transferId: transfer._id, txHash: result.txHash });
+
+  } else {
+    if (!reason) return res.status(400).json({ success: false, error: 'Reason is required for rejection' });
+
+    try {
+      result = await escrowService.officerRejectOnChain({ reviewId, reason, officerPrivateKey });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: 'On-chain rejection failed: ' + err.message });
+    }
+
+    transfer.status             = 'rejected';
+    transfer.escrow.status      = 'refunded';
+    transfer.resolvedAt         = new Date();
+    officerCase.status          = 'rejected';
+    officerCase.rejectionReason = reason;
+    officerCase.resolvedAt      = new Date();
+
+    await Land.findByIdAndUpdate(transfer.land, { $set: { status: 'frozen' } });
+
+    for (const userId of [transfer.seller, transfer.buyer]) {
+      await Notification.create({
+        user: userId,
+        type: 'transfer_complete',
+        title: 'Transfer Rejected',
+        message: userId.toString() === transfer.buyer.toString()
+          ? `Transfer rejected. Funds refunded. Reason: ${reason}`
+          : `Transfer rejected by officer. Reason: ${reason}`,
+        metadata: { transferId: transfer._id }
+      });
+    }
+
+    logger.info('Officer rejected transfer on-chain', { transferId: transfer._id, reason });
+  }
+
+  await transfer.save();
+  await officerCase.save();
+
+  await AuditLog.create({
+    actor: req.userId,
+    action: approve ? 'transfer.officerApproved' : 'transfer.officerRejected',
+    target: `TransferRequest:${transfer._id}`,
+    details: { reason, txHash: result.txHash, reviewId },
+    ipAddress: req.ip
+  });
+
+  res.json({
+    success: true,
+    message: approve
+      ? 'Approved on-chain. Funds released to seller. Ownership transferred.'
+      : 'Rejected on-chain. Funds refunded to buyer. Land frozen.',
+    transfer
+  });
+});
+
+/**
  * GET /transfer/my
- * Get user's transfers (as buyer or seller).
  */
 exports.getMyTransfers = asyncHandler(async (req, res) => {
-  const filter = {
-    $or: [
-      { buyer: req.userId },
-      { seller: req.userId }
-    ]
-  };
-
+  const filter = { $or: [{ buyer: req.userId }, { seller: req.userId }] };
   if (req.query.status) filter.status = req.query.status;
 
   const query = TransferRequest.find(filter)
@@ -180,83 +542,72 @@ exports.getMyTransfers = asyncHandler(async (req, res) => {
 });
 
 /**
- * POST /transfer/:id/coowner-consent
- * Co-owner signs consent for the transfer.
+ * GET /transfer/incoming
  */
-exports.coownerConsent = asyncHandler(async (req, res) => {
-  const { coOwnerId, approve, signature } = req.body;
+exports.getIncomingOffers = asyncHandler(async (req, res) => {
+  const filter = {
+    seller: req.userId,
+    status: req.query.status || {
+      $in: ['offer_sent', 'coowner_consent_pending', 'offer_accepted', 'escrow_locked', 'officer_review']
+    }
+  };
 
-  const transfer = await TransferRequest.findById(req.params.id);
-  if (!transfer) return res.status(404).json({ success: false, error: 'Transfer not found' });
+  const query = TransferRequest.find(filter)
+    .populate('land', 'location area status documents listingPrice')
+    .populate('buyer', 'walletAddress profile.fullName profile.email')
+    .sort({ createdAt: -1 });
 
-  // Find the consent entry
-  const consent = transfer.coOwnerConsents.find(
-    c => c.coOwner.toString() === coOwnerId
-  );
+  const result = await paginate(query, req.query);
+  res.json({ success: true, ...result });
+});
 
-  if (!consent) {
-    return res.status(404).json({ success: false, error: 'Co-owner consent entry not found' });
+/**
+ * GET /transfer/coowner-pending
+ */
+exports.getCoownerPending = asyncHandler(async (req, res) => {
+  const currentUser = await User.findById(req.userId);
+  if (!currentUser) return res.status(404).json({ success: false, error: 'User not found' });
+
+  const coOwners   = await CoOwner.find({ walletAddress: currentUser.walletAddress?.toLowerCase() });
+  const coOwnerIds = coOwners.map(c => c._id);
+
+  if (coOwnerIds.length === 0) {
+    return res.json({ success: true, transfers: [], allCoownerTransfers: [] });
   }
 
-  // Check if this is the right co-owner
-  const coOwner = await CoOwner.findById(coOwnerId);
-  if (!coOwner) return res.status(404).json({ success: false, error: 'Co-owner not found' });
+  const pendingTransfers = await TransferRequest.find({
+    'coOwnerConsents.coOwner': { $in: coOwnerIds },
+    status: { $in: ['coowner_consent_pending', 'offer_accepted', 'escrow_locked'] }
+  })
+    .populate('land', 'location area status listingPrice')
+    .populate('seller', 'walletAddress profile.fullName')
+    .populate('buyer', 'walletAddress profile.fullName')
+    .sort({ createdAt: -1 });
 
-  if (coOwner.walletAddress && coOwner.walletAddress !== req.user.walletAddress) {
-    return res.status(403).json({ success: false, error: 'Not authorized to sign this consent' });
-  }
+  const allCoownerTransfers = await TransferRequest.find({
+    'coOwnerConsents.coOwner': { $in: coOwnerIds }
+  })
+    .populate('land', 'location area status listingPrice')
+    .populate('seller', 'walletAddress profile.fullName')
+    .populate('buyer', 'walletAddress profile.fullName')
+    .sort({ createdAt: -1 });
 
-  // If rejecting, cancel the entire transfer
-  if (!approve) {
-    consent.status = 'rejected';
-    transfer.status = 'cancelled';
-    await transfer.save();
+  const attachConsent = (transfers) => transfers.map(t => {
+    const myConsent = t.coOwnerConsents.find(c =>
+      coOwnerIds.map(id => id.toString()).includes(c.coOwner.toString())
+    );
+    return { ...t.toObject(), myConsent };
+  });
 
-    await Land.findByIdAndUpdate(transfer.land, { $set: { status: 'listed' } });
-
-    return res.json({
-      success: true,
-      message: 'Co-owner rejected. Transfer cancelled.',
-      transfer
-    });
-  }
-
-  consent.status = 'approved';
-  consent.signedAt = new Date();
-
-  // Check if offline co-owner → auto-flag for officer review
-  if (!coOwner.isOnline || coOwner.nocStatus === 'offline_uploaded') {
-    const officerCase = await OfficerCase.create({
-      land: transfer.land,
-      transferRequest: transfer._id,
-      type: 'transfer_review',
-      status: 'queued'
-    });
-    transfer.officerCase = officerCase._id;
-    transfer.status = 'officer_review';
-    await transfer.save();
-
-    return res.json({
-      success: true,
-      message: 'Offline co-owner flagged for officer review.',
-      transfer
-    });
-  }
-
-  // Check if all consents are approved
-  const allApproved = transfer.coOwnerConsents.every(c => c.status === 'approved');
-  if (allApproved) {
-    transfer.status = 'escrow_locked';  // Ready for buyer to lock full payment
-  }
-
-  await transfer.save();
-
-  res.json({ success: true, transfer });
+  res.json({
+    success: true,
+    transfers: attachConsent(pendingTransfers),
+    allCoownerTransfers: attachConsent(allCoownerTransfers)
+  });
 });
 
 /**
  * POST /transfer/:id/finalize
- * Finalize the transfer after all approvals + escrow lock.
  */
 exports.finalize = asyncHandler(async (req, res) => {
   const transfer = await TransferRequest.findById(req.params.id);
@@ -266,21 +617,14 @@ exports.finalize = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, error: 'Transfer not ready for finalization' });
   }
 
-  // In production, this would call the smart contract
-  transfer.status = 'completed';
+  transfer.status         = 'completed';
   transfer.transferTxHash = req.body.txHash || 'pending-chain-confirmation';
   await transfer.save();
 
-  // Update land ownership
   await Land.findByIdAndUpdate(transfer.land, {
-    $set: {
-      owner: transfer.buyer,
-      status: 'transferred',
-      coOwners: []
-    }
+    $set: { owner: transfer.buyer, status: 'transferred', coOwners: [] }
   });
 
-  // Notify both parties
   for (const userId of [transfer.buyer, transfer.seller]) {
     await Notification.create({
       user: userId,
@@ -292,6 +636,5 @@ exports.finalize = asyncHandler(async (req, res) => {
   }
 
   logger.info('Transfer finalized', { transferId: transfer._id });
-
   res.json({ success: true, transfer });
 });

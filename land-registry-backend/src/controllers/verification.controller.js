@@ -1,11 +1,3 @@
-/**
- * @file verification.controller.js
- * @description This controller handles incoming HTTP requests, processes business logic, and returns API responses.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 // src/controllers/verification.controller.js
 
 const fs = require('fs');
@@ -132,9 +124,26 @@ exports.verifyLand = asyncHandler(async (req, res) => {
     scraped: parsed
   });
 
-  // 🔥 NORMALIZATION FIX (CRITICAL)
+  // 🔥 DEBUG LOG — remove after confirming fix
+  logger.info('Verdict debug', {
+    rawVerdict: verification.verdict,
+    nameMatch: verification.nameMatch,
+    areaMatch: verification.areaMatch,
+    nameScore: verification.nameScore,
+    areaScore: verification.areaScore
+  });
+
+  // ── Normalization ─────────────────────────────
+  const PASS_VERDICTS = ['verified', 'auto_pass', 'pass'];
+
+  const normalizedVerdict = PASS_VERDICTS.includes(verification.verdict)
+    ? 'verified'
+    : 'failed';
+
   const normalizedVerification = {
     ...verification,
+
+    verdict: normalizedVerdict,
 
     nameMatch: Boolean(verification.nameMatch),
     areaMatch: Boolean(verification.areaMatch),
@@ -188,11 +197,14 @@ exports.verifyLand = asyncHandler(async (req, res) => {
       cids
     });
 
-    // 🔥 FIXED VERDICT LOGIC
-    const landStatus =
-      verification.verdict === 'verified'
-        ? 'verification_passed'
-        : 'officer_review';
+    // ── Land Status Logic ─────────────────────────────
+    // verified   → verification_passed  (auto approved)
+    // failed     → verification_failed  (goes to officer review)
+    const landStatus = normalizedVerdict === 'verified'
+      ? 'verification_passed'
+      : 'verification_failed';
+
+    logger.info('Land status update', { landId: req.body.landId, landStatus, normalizedVerdict });
 
     await Land.findByIdAndUpdate(req.body.landId, {
       $set: {
@@ -203,9 +215,9 @@ exports.verifyLand = asyncHandler(async (req, res) => {
       }
     });
 
-    // 🔥 SINGLE OFFICER CASE PATH (NO DUPLICATE)
-    if (landStatus === 'officer_review') {
-      await queueForOfficerReview(req.body.landId, 'Auto verification mismatch');
+    // Queue for officer review if verification failed
+    if (landStatus === 'verification_failed') {
+      await queueForOfficerReview(req.body.landId, 'Auto verification mismatch — sent for officer review');
     }
   }
 
@@ -220,39 +232,28 @@ exports.verifyLand = asyncHandler(async (req, res) => {
     verificationId: verResult?._id
   });
 });
-
 // ─────────────────────────────────────────────
 exports.documentCompare = asyncHandler(async (req, res) => {
   const ipfsController = require('./ipfs.controller');
   return ipfsController.extractAndCompare(req, res);
 });
 
-// ─────────────────────────────────────────────
 exports.getResult = asyncHandler(async (req, res) => {
   const { landId } = req.params;
 
   if (!landId || landId.length < 10) {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid landId provided'
-    });
+    return res.status(400).json({ success: false, error: 'Invalid landId provided' });
   }
 
-  // First check if Land exists
   const land = await Land.findById(landId).select('status owner verificationResult');
   if (!land) {
-    return res.status(404).json({
-      success: false,
-      error: 'Land record not found',
-      landId
-    });
+    return res.status(404).json({ success: false, error: 'Land record not found', landId });
   }
 
-  // Get latest verification result
   const result = await VerificationResult
     .findOne({ land: landId })
     .sort({ createdAt: -1 })
-    .lean();   // Use lean for better performance
+    .lean();
 
   if (!result) {
     return res.status(404).json({
@@ -264,7 +265,8 @@ exports.getResult = asyncHandler(async (req, res) => {
     });
   }
 
-  // Enrich response with land context
+  const c = result.comparison || {};
+
   const response = {
     success: true,
     landId: land._id,
@@ -279,17 +281,42 @@ exports.getResult = asyncHandler(async (req, res) => {
       comparison: result.comparison,
       cids: result.cids
     },
-    verdict: result.comparison?.verdict || 'unknown',
-    isVerified: result.comparison?.verdict === 'verified',
-    nameMatch: Boolean(result.comparison?.nameMatch),
-    areaMatch: Boolean(result.comparison?.areaMatch),
-    flags: result.comparison?.flags || []
+
+    // ── Flat summary for easy frontend consumption ──
+    verdict: c.verdict || 'unknown',
+    isVerified: c.verdict === 'verified',
+    overallScore: c.score ?? null,
+
+    nameMatch: Boolean(c.nameMatch),
+    nameScore: Number(c.nameScore ?? 0),
+    nameDetails: Array.isArray(c.nameDetails) ? c.nameDetails.map(d => ({
+      scrapedName: d.scrapedName || '',
+      score: d.score ?? 0,
+      isBestMatch: Boolean(d.isBestMatch)
+    })) : [],
+    areaMatch: Boolean(c.areaMatch),
+    areaScore: Number(c.areaScore ?? 0),
+    areaDetails: c.areaDetails ? {
+      inputArea: c.areaDetails.inputArea,
+      inputUnit: c.areaDetails.inputUnit,
+      scrapedArea: c.areaDetails.scrapedArea,
+      scrapedUnit: c.areaDetails.scrapedUnit,
+      scrapedRaw: c.areaDetails.scrapedRaw,
+      diffSqm: c.areaDetails.diffSqm,
+      toleranceSqm: c.areaDetails.toleranceSqm
+    } : null,
+    encumbranceFlag: Boolean(c.encumbranceFlag),
+    encumbranceText: c.encumbranceText || '',
+
+    flags: Array.isArray(c.flags) ? c.flags : [],
+    thresholds: c.thresholds || null,
+    parseSource: result.parseSource || null,
   };
 
-  logger.info('Verification result returned', { 
-    landId, 
+  logger.info('Verification result returned', {
+    landId,
     verificationId: result._id,
-    verdict: response.verdict 
+    verdict: response.verdict
   });
 
   res.json(response);

@@ -1,0 +1,43 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "IOfficerMultiSig",
+  "sourceName": "contracts/MultiSigTransfer.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "proposalId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "landId",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "offChainCaseRef",
+          "type": "bytes32"
+        }
+      ],
+      "name": "submitForReview",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "reviewId",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/contracts/MultiSigTransfer.sol",
+  "buildInfoId": "solc-0_8_24-92843b648ee0cf328db4975d845efe2fa7ef4c85"
+}

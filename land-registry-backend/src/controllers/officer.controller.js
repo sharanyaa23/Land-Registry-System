@@ -1,85 +1,116 @@
-/**
- * @file officer.controller.js
- * @description Handles all Officer/Admin-related HTTP requests for the land verification workflow.
- *              Officers are government-appointed users who manually review land records when the
- *              automated OCR verification fails or produces low-confidence results.
- *
- *              OFFICER WORKFLOW:
- *              1. The OCR system scans a 7/12 document and calculates a confidence score
- *              2. If confidence < 60%, the system creates an OfficerCase (queued for manual review)
- *              3. The officer sees the case in their dashboard with:
- *                 - OCR extracted data (what the machine read)
- *                 - Seller entered data (what the seller claimed)
- *                 - A side-by-side comparison highlighting mismatches
- *              4. The officer reviews the evidence and either APPROVES or REJECTS the case
- *              5. On approval → land status changes to 'verification_passed' (can proceed to sale)
- *              6. On rejection → land status changes to 'verification_failed' (seller must re-submit)
- *
- * NOTE: This file is essential for the backend architecture.
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 const asyncHandler = require('../utils/asyncHandler');
 const OfficerCase = require('../models/OfficerCase.model');
 const OfficerSignature = require('../models/OfficerSignature.model');
 const Land = require('../models/Land.model');
 const TransferRequest = require('../models/TransferRequest.model');
 const Notification = require('../models/Notification.model');
+const AuditLog = require('../models/AuditLog.model');
 const paginate = require('../utils/paginateQuery');
 const logger = require('../utils/logger');
 
 /**
+ * Flatten a case document into the shape the frontend expects.
+ */
+const flattenCase = (c) => {
+  const land     = (c.land && typeof c.land === 'object' && c.land.location) ? c.land : {};
+  const transfer = (c.transferRequest && typeof c.transferRequest === 'object') ? c.transferRequest : {};
+  const buyer    = (transfer.buyer  && typeof transfer.buyer  === 'object') ? transfer.buyer  : {};
+  const seller   = (transfer.seller && typeof transfer.seller === 'object') ? transfer.seller : {};
+  const owner    = (land.owner && typeof land.owner === 'object') ? land.owner : {};
+
+  return {
+    _id:               c._id,
+    status:            c.status,
+    type:              c.type,
+    findings:          c.findings,
+    rejectionReason:   c.rejectionReason,
+    signatures:        c.signatures || [],
+    createdAt:         c.createdAt,
+    updatedAt:         c.updatedAt,
+    hasOfflineCoOwner: c.hasOfflineCoOwner,
+    onChainReviewId:   c.onChainReviewId,
+
+    // Land fields
+    landId:        land._id,
+    surveyNumber:  land.location?.surveyNumber,
+    village:       land.location?.village,
+    district:      land.location?.district,
+    taluka:        land.location?.taluka,
+    area:          land.area?.value,
+    areaUnit:      land.area?.unit,
+    landStatus:    land.status,
+    blockchain:    land.blockchain,
+    documents:     land.documents,
+
+    // Seller — from transfer or land owner
+    sellerWallet:  seller.walletAddress  || owner.walletAddress  || null,
+    sellerName:    seller.profile?.fullName || owner.profile?.fullName || null,
+
+    // Buyer — only for transfer cases
+    buyerWallet:   buyer.walletAddress   || null,
+    buyerName:     buyer.profile?.fullName || null,
+
+    // Transfer fields
+    transferId:     transfer._id    || null,
+    transferStatus: transfer.status || null,
+    price:          transfer.price  || null,
+    escrow:         transfer.escrow || null,
+
+    // Keep raw refs for frontend deep access
+    land:            c.land,
+    transferRequest: c.transferRequest
+  };
+};
+
+/**
  * GET /officer/cases
- * List all officer cases with optional status filter.
- *
- * HOW IT WORKS:
- * - Accepts optional query params: ?status=queued&type=verification_review
- * - Queries the OfficerCase collection with MongoDB's .find()
- * - Populates the related 'land' document with its owner info for display
- * - Uses the paginate utility for cursor-based pagination
- * - Returns the full case objects including ocrData and sellerData for comparison
  */
 exports.listCases = asyncHandler(async (req, res) => {
   const filter = {};
   if (req.query.status) filter.status = req.query.status;
-  if (req.query.type) filter.type = req.query.type;
-
-  // If officer has a tehsil, only show cases in their jurisdiction
-  if (req.user.role === 'officer' && req.user.officerMeta?.tehsil) {
-    // Could filter by land's taluka matching officer's tehsil
-  }
+  if (req.query.type)   filter.type   = req.query.type;
 
   const query = OfficerCase.find(filter)
     .populate({
       path: 'land',
-      select: 'location area status owner documents',
       populate: { path: 'owner', select: 'walletAddress profile.fullName' }
     })
-    .populate('transferRequest', 'buyer seller price status')
-    .populate('assignedOfficer', 'walletAddress profile.fullName')
-    .populate('signatures')
+    .populate({
+      path: 'transferRequest',
+      populate: [
+        { path: 'buyer',  select: 'walletAddress profile.fullName' },
+        { path: 'seller', select: 'walletAddress profile.fullName' }
+      ]
+    })
+    .populate({
+      path: 'signatures',
+      populate: { path: 'officer', select: 'walletAddress profile.fullName' }
+    })
     .sort({ createdAt: -1 });
 
   const result = await paginate(query, req.query);
-  res.json({ success: true, ...result });
+
+  const raw  = result.docs || result.data || result || [];
+  const docs = Array.isArray(raw) ? raw : [];
+
+  docs.forEach(c => {
+    console.log('case:', c._id, '| survey:', c.land?.location?.surveyNumber, '| village:', c.land?.location?.village);
+  });
+
+  const flatDocs = docs.map(flattenCase);
+
+  res.json({ success: true, data: flatDocs, total: result.total || docs.length });
 });
 
 /**
  * GET /officer/cases/:id
- * Get full case details for a specific case.
- *
- * HOW IT WORKS:
- * - Finds the OfficerCase by its MongoDB _id
- * - Deep-populates the related land, owner, coOwners, verification results,
- *   transfer request, buyer, seller, and officer signatures
- * - Returns the fully populated case object for the frontend detail view
  */
 exports.getCaseById = asyncHandler(async (req, res) => {
   const caseDoc = await OfficerCase.findById(req.params.id)
     .populate({
       path: 'land',
       populate: [
-        { path: 'owner', select: 'walletAddress profile.fullName' },
+        { path: 'owner',             select: 'walletAddress profile.fullName' },
         { path: 'coOwners' },
         { path: 'verificationResult' }
       ]
@@ -87,7 +118,7 @@ exports.getCaseById = asyncHandler(async (req, res) => {
     .populate({
       path: 'transferRequest',
       populate: [
-        { path: 'buyer', select: 'walletAddress profile.fullName' },
+        { path: 'buyer',  select: 'walletAddress profile.fullName' },
         { path: 'seller', select: 'walletAddress profile.fullName' }
       ]
     })
@@ -100,131 +131,293 @@ exports.getCaseById = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, error: 'Case not found' });
   }
 
-  res.json({ success: true, case: caseDoc });
+  res.json({ success: true, case: flattenCase(caseDoc) });
 });
 
 /**
  * POST /officer/cases/:id/approve
- * Officer approves a case with justification.
- *
- * HOW IT WORKS:
- * - Finds the OfficerCase by ID
- * - Creates an OfficerSignature record (for audit trail and multi-sig support)
- * - Updates the case status to 'approved'
- * - If it's a verification_review → updates the land status to 'verification_passed'
- *   (this means the land is now cleared for listing and sale)
- * - If it's a transfer_review → updates the transfer status to 'approved'
- * - Sends a notification to the land owner informing them of the approval
  */
 exports.approveCase = asyncHandler(async (req, res) => {
-  const { justification, signatureHash } = req.body;
+  const { justification, txHash, reviewId } = req.body;
 
-  const caseDoc = await OfficerCase.findById(req.params.id);
+  const caseDoc = await OfficerCase.findById(req.params.id)
+    .populate('transferRequest');
+
   if (!caseDoc) {
     return res.status(404).json({ success: false, error: 'Case not found' });
   }
 
-  // Create officer signature for audit trail
-  const sig = await OfficerSignature.create({
-    officerCase: caseDoc._id,
-    officer: req.userId,
-    decision: 'approve',
-    justification: justification || '',
-    signatureHash: signatureHash || '',
-  });
+  if (['approved', 'rejected'].includes(caseDoc.status)) {
+    return res.status(400).json({ success: false, error: `Case already ${caseDoc.status}` });
+  }
 
+ const sig = await OfficerSignature.findOneAndUpdate(
+  { officerCase: caseDoc._id, officer: req.userId },
+  {
+    $set: {
+      decision:      'approve',
+      justification: justification || '',
+      signatureHash: txHash || '',
+      txHash:        txHash || '',
+      reviewId:      reviewId?.toString() || null
+    }
+  },
+  { upsert: true, new: true, setDefaultsOnInsert: true }
+);
+
+// Only push to signatures array if not already present
+if (!caseDoc.signatures.map(s => s.toString()).includes(sig._id.toString())) {
   caseDoc.signatures.push(sig._id);
-  caseDoc.status = 'approved';
-  caseDoc.findings = justification || '';
+}
+
+  caseDoc.findings        = justification || '';
   caseDoc.assignedOfficer = req.userId;
-  caseDoc.resolvedAt = new Date();
+
+  if (caseDoc.type === 'verification_review') {
+    caseDoc.status     = 'approved';
+    caseDoc.resolvedAt = new Date();
+
+    await Land.findByIdAndUpdate(caseDoc.land, {
+      $set: { status: 'verification_passed', legacyFlag: false }
+    });
+
+    const land = await Land.findById(caseDoc.land);
+    if (land) {
+      await Notification.create({
+        user:    land.owner,
+        type:    'verification_complete',
+        title:   'Land Verified',
+        message: 'Your land has been verified and approved by an officer.',
+        metadata: { caseId: caseDoc._id, landId: land._id }
+      });
+    }
+
+  } else if (caseDoc.type === 'transfer_review') {
+    const reviewId = req.body.reviewId || caseDoc.onChainReviewId;
+
+    const transfer = caseDoc.transferRequest;
+
+    // Re-fetch signatures to get accurate count
+    const allSigs = await OfficerSignature.find({
+      officerCase: caseDoc._id,
+      decision:    'approve'
+    });
+    const approvalCount = allSigs.length;
+
+    if (approvalCount >= 2) {
+      caseDoc.status     = 'approved';
+      caseDoc.resolvedAt = new Date();
+
+      if (transfer) {
+        await TransferRequest.findByIdAndUpdate(transfer._id, {
+          $set: {
+            status:          'completed',
+            'escrow.status': 'released',
+            resolvedAt:      new Date(),
+            transferTxHash:  txHash || ''
+          }
+        });
+
+        await Land.findByIdAndUpdate(transfer.land, {
+          $set: { owner: transfer.buyer, status: 'transferred', coOwners: [] }
+        });
+
+        for (const userId of [transfer.buyer, transfer.seller]) {
+          await Notification.create({
+            user:    userId,
+            type:    'transfer_complete',
+            title:   'Transfer Approved',
+            message: userId.toString() === transfer.seller?.toString()
+              ? 'Officers approved the transfer. Funds released to you.'
+              : 'Officers approved the transfer. Land ownership transferred to you.',
+            metadata: { caseId: caseDoc._id, transferId: transfer._id }
+          });
+        }
+      }
+    } else {
+      caseDoc.status = 'in_review';
+    }
+  }
+
   await caseDoc.save();
 
-  // Update related land status based on case type
-  if (caseDoc.type === 'verification_review') {
-    // Land was stuck in 'officer_review' → move it to 'verification_passed'
-    await Land.findByIdAndUpdate(caseDoc.land, {
-      $set: { status: 'registered', legacyFlag: false }
-    });
-  }
-
-  // If transfer review, update transfer status
-  if (caseDoc.type === 'transfer_review' && caseDoc.transferRequest) {
-    await TransferRequest.findByIdAndUpdate(caseDoc.transferRequest, {
-      $set: { status: 'approved' }
-    });
-  }
-
-  // Notify the land owner about the approval
-  const land = await Land.findById(caseDoc.land);
-  if (land) {
-    await Notification.create({
-      user: land.owner,
-      type: 'verification_complete',
-      title: 'Verification Approved',
-      message: `Your land record has been verified and approved by a government officer. Your land is now registered on the blockchain.`,
-      metadata: { caseId: caseDoc._id, landId: land._id }
-    });
-  }
+  await AuditLog.create({
+    actor:     req.userId,
+    action:    'officer.approve',
+    target:    `OfficerCase:${caseDoc._id}`,
+    details:   { justification, txHash, reviewId },
+    ipAddress: req.ip
+  });
 
   logger.info('Case approved', { caseId: caseDoc._id, officer: req.userId });
 
-  res.json({ success: true, case: caseDoc });
+  // Re-fetch with populated fields for response
+  const populated = await OfficerCase.findById(caseDoc._id)
+    .populate({ path: 'land', populate: { path: 'owner', select: 'walletAddress profile.fullName' } })
+    .populate({ path: 'transferRequest', populate: [{ path: 'buyer', select: 'walletAddress profile.fullName' }, { path: 'seller', select: 'walletAddress profile.fullName' }] })
+    .populate('signatures');
+
+  res.json({ success: true, case: flattenCase(populated) });
 });
 
 /**
  * POST /officer/cases/:id/reject
- * Officer rejects a case with justification.
- *
- * HOW IT WORKS:
- * - Same flow as approve, but sets status to 'rejected'
- * - Updates land status to 'verification_failed' → seller must re-submit documents
- * - Creates an OfficerSignature for audit trail
  */
 exports.rejectCase = asyncHandler(async (req, res) => {
-  const { justification, signatureHash } = req.body;
+  const { justification, reason, txHash, reviewId } = req.body;
 
-  const caseDoc = await OfficerCase.findById(req.params.id);
+  const caseDoc = await OfficerCase.findById(req.params.id)
+    .populate('transferRequest');
+
   if (!caseDoc) {
     return res.status(404).json({ success: false, error: 'Case not found' });
   }
 
-  const sig = await OfficerSignature.create({
-    officerCase: caseDoc._id,
-    officer: req.userId,
-    decision: 'reject',
-    justification: justification || '',
-    signatureHash: signatureHash || '',
-  });
+  if (['approved', 'rejected'].includes(caseDoc.status)) {
+    return res.status(400).json({ success: false, error: `Case already ${caseDoc.status}` });
+  }
 
+  const rejectionReason = reason || justification || 'Rejected by officer';
+
+  const sig = await OfficerSignature.findOneAndUpdate(
+  { officerCase: caseDoc._id, officer: req.userId },
+  {
+    $set: {
+      decision:      'reject',
+      justification: rejectionReason,
+      reason:        rejectionReason,
+      signatureHash: txHash || '',
+      txHash:        txHash || '',
+      reviewId:      reviewId?.toString() || null
+    }
+  },
+  { upsert: true, new: true, setDefaultsOnInsert: true }
+);
+
+// Only push to signatures array if not already present
+if (!caseDoc.signatures.map(s => s.toString()).includes(sig._id.toString())) {
   caseDoc.signatures.push(sig._id);
-  caseDoc.status = 'rejected';
-  caseDoc.findings = justification || '';
+}
+  caseDoc.status          = 'rejected';
+  caseDoc.findings        = rejectionReason;
+  caseDoc.rejectionReason = rejectionReason;
   caseDoc.assignedOfficer = req.userId;
-  caseDoc.resolvedAt = new Date();
+  caseDoc.resolvedAt      = new Date();
   await caseDoc.save();
 
-  // Update related records
   if (caseDoc.type === 'verification_review') {
-    await Land.findByIdAndUpdate(caseDoc.land, { $set: { status: 'verification_failed' } });
-  }
-  if (caseDoc.type === 'transfer_review' && caseDoc.transferRequest) {
-    await TransferRequest.findByIdAndUpdate(caseDoc.transferRequest, { $set: { status: 'rejected' } });
+    await Land.findByIdAndUpdate(caseDoc.land, {
+      $set: { status: 'verification_failed' }
+    });
+
+    const land = await Land.findById(caseDoc.land);
+    if (land) {
+      await Notification.create({
+        user:    land.owner,
+        type:    'verification_complete',
+        title:   'Land Verification Rejected',
+        message: `Your land verification was rejected. Reason: ${rejectionReason}`,
+        metadata: { caseId: caseDoc._id, landId: land._id }
+      });
+    }
+
+  } else if (caseDoc.type === 'transfer_review') {
+    const transfer = caseDoc.transferRequest;
+
+    if (transfer) {
+      await TransferRequest.findByIdAndUpdate(transfer._id, {
+        $set: {
+          status:          'rejected',
+          'escrow.status': 'refunded',
+          resolvedAt:      new Date()
+        }
+      });
+
+      await Land.findByIdAndUpdate(transfer.land, {
+        $set: { status: 'frozen' }
+      });
+
+      for (const userId of [transfer.buyer, transfer.seller]) {
+        await Notification.create({
+          user:    userId,
+          type:    'transfer_complete',
+          title:   'Transfer Rejected',
+          message: userId.toString() === transfer.buyer?.toString()
+            ? `Transfer rejected. Funds refunded. Reason: ${rejectionReason}`
+            : `Transfer rejected by officers. Reason: ${rejectionReason}`,
+          metadata: { caseId: caseDoc._id, transferId: transfer._id }
+        });
+      }
+    }
   }
 
-  // Notify the land owner
-  const land = await Land.findById(caseDoc.land);
-  if (land) {
-    await Notification.create({
-      user: land.owner,
-      type: 'verification_failed',
-      title: 'Verification Rejected',
-      message: `Your land verification has been rejected. Reason: ${justification || 'No reason provided'}. Please re-submit corrected documents.`,
-      metadata: { caseId: caseDoc._id, landId: land._id }
-    });
-  }
+  await AuditLog.create({
+    actor:     req.userId,
+    action:    'officer.reject',
+    target:    `OfficerCase:${caseDoc._id}`,
+    details:   { reason: rejectionReason, txHash, reviewId },
+    ipAddress: req.ip
+  });
 
   logger.info('Case rejected', { caseId: caseDoc._id, officer: req.userId });
 
-  res.json({ success: true, case: caseDoc });
+  const populated = await OfficerCase.findById(caseDoc._id)
+    .populate({ path: 'land', populate: { path: 'owner', select: 'walletAddress profile.fullName' } })
+    .populate({ path: 'transferRequest', populate: [{ path: 'buyer', select: 'walletAddress profile.fullName' }, { path: 'seller', select: 'walletAddress profile.fullName' }] })
+    .populate('signatures');
+
+  res.json({ success: true, case: flattenCase(populated) });
+});
+
+/**
+ * POST /officer/land/:landId/clear-freeze
+ */
+exports.clearFreeze = asyncHandler(async (req, res) => {
+  const { txHash } = req.body;
+
+  await Land.findByIdAndUpdate(req.params.landId, {
+    $set: { status: 'listed' }
+  });
+
+  await AuditLog.create({
+    actor:     req.userId,
+    action:    'officer.clearFreeze',
+    target:    `Land:${req.params.landId}`,
+    details:   { txHash },
+    ipAddress: req.ip
+  });
+
+  logger.info('Land freeze cleared', { landId: req.params.landId, officer: req.userId });
+  res.json({ success: true, message: 'Land freeze cleared.' });
+});
+
+/**
+ * POST /officer/registrar/add
+ */
+exports.addRegistrar = asyncHandler(async (req, res) => {
+  const { walletAddress } = req.body;
+  if (!walletAddress) {
+    return res.status(400).json({ success: false, error: 'walletAddress is required' });
+  }
+
+  const landService = require('../services/blockchain/land.service');
+  const result = await landService.addRegistrar(walletAddress);
+
+  logger.info('Registrar added', { walletAddress, txHash: result.txHash });
+  res.json({ success: true, txHash: result.txHash });
+});
+
+/**
+ * POST /officer/registrar/remove
+ */
+exports.removeRegistrar = asyncHandler(async (req, res) => {
+  const { walletAddress } = req.body;
+  if (!walletAddress) {
+    return res.status(400).json({ success: false, error: 'walletAddress is required' });
+  }
+
+  const landService = require('../services/blockchain/land.service');
+  await landService.removeRegistrar(walletAddress);
+
+  res.json({ success: true });
 });

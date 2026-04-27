@@ -1,11 +1,3 @@
-/**
- * @file VerificationResult.model.js
- * @description This model defines the MongoDB schema and database structure for the application.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 // src/models/VerificationResult.model.js  (or wherever VerificationResult is defined)
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
@@ -39,7 +31,7 @@ const comparisonSchema = new Schema({
   score: { type: Number, default: 0 },
   verdict: {
     type: String,
-    enum: ['verified', 'officer_review', 'rejected'],
+    enum: ['verified', 'officer_review', 'rejected','auto_pass'],
     default: 'officer_review'
   },
   flags: [String],

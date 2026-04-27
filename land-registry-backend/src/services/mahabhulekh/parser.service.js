@@ -1,11 +1,3 @@
-/**
- * @file parser.service.js
- * @description This service handles complex external integrations, background tasks, or specific business operations separate from the controller.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 // src/services/mahabhulekh/parser.service.js
 const vision = require('@google-cloud/vision');
 const path   = require('path');
@@ -97,14 +89,19 @@ class ParserService {
     const seen     = new Set();
 
     const addVertex = (id, rawX, rawY) => {
-      // Normalise id: strip leading zeros, ensure V prefix
-      const idClean = String(id).replace(/^V?0*/, '');
-      const normId  = `V${idClean}`;
-      if (seen.has(normId)) return;
-      seen.add(normId);
-      vertices.push({ id: normId, rawX: rawX.trim(), rawY: rawY.trim() });
-    };
+  const x = parseFloat(rawX);
+  const y = parseFloat(rawY);
+  // Must be real Maharashtra coordinates, not scale bar values
+  const isGeo = (x >= 73 && x <= 80 && y >= 15 && y <= 22);
+  const isMTM = (x > 10000 && y > 10000);
+  if (!isGeo && !isMTM) return;   // ← ADD THIS
 
+  const idClean = String(id).replace(/^V?0*/, '');
+  const normId  = `V${idClean}`;
+  if (seen.has(normId)) return;
+  seen.add(normId);
+  vertices.push({ id: normId, rawX: String(x), rawY: String(y) });
+};
     // Strategy 1 — V-prefixed with colon/space separator
     // "V1 : 76.856123, 20.524601"  or  "V1 76.856123 20.524601"
     const vPrefixRegex = /\b(V\d+)\s*[:\-]?\s*(\d{2,}\.\d+)\s*[,\s]+\s*(\d{2,}\.\d+)/gi;
@@ -428,27 +425,158 @@ class ParserService {
   // ═══════════════════════════════════════════════════════════════════════════
   // MAHABHUNAKSHA PARSING METHODS
   // ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// MAHABHUNAKSHA PARSING METHODS
+// ═══════════════════════════════════════════════════════════════════════════
 
-  parseMahabhunakshaLayerReport(rawHtml) {
-    if (!rawHtml) return this._emptyMahabhunakshaResult('no-html');
+  parseMahabhunakshaLayerReport(html) {
+    const empty = {
+      plotNo: '', surveyCode: '', surveyNumber: '',
+      villageName: '', talukaName: '', districtName: '',
+      owners: [], area: '', encumbrances: '',
+      measurements: {}, rawText: '', vertices: [],
+    };
+    if (!html) return empty;
 
-    const text  = this._stripHtmlTags(rawHtml);
-    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+    const rawText = this._stripHtmlTags(html);
+    const lines   = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
 
-    const result      = this._emptyMahabhunakshaResult('layer-report');
-    result.plotNo     = this._extractPlotNo(lines);
-    result.surveyCode = this._extractSurveyCode(lines);
-    result.vertices   = this._extractVertices(rawHtml, text, lines);
-    result.measurements = this._extractMeasurements(lines);
-    result.rawText    = text;
+    // ── Metadata ───────────────────────────────────────────────────────────
+    const plotNo     = this._extractPlotNo(lines);
+    const surveyCode = this._extractSurveyCode(lines);
+
+    let surveyNumber = '', villageName = '', talukaName = '', districtName = '';
+    for (const line of lines) {
+      if (!surveyNumber) {
+        const m = line.match(/(?:survey\s*no|gat\s*no|भूमापन)[^\d]*(\d+[/\w]*)/i);
+        if (m) surveyNumber = m[1];
+      }
+      if (!villageName) {
+        const m = line.match(/village\s*[:\-]?\s*([A-Za-z\u0900-\u097F]+)/i);
+        if (m) villageName = m[1];
+      }
+      if (!talukaName) {
+        const m = line.match(/taluka\s*[:\-]?\s*([A-Za-z\u0900-\u097F]+)/i);
+        if (m) talukaName = m[1];
+      }
+      if (!districtName) {
+        const m = line.match(/district\s*[:\-]?\s*([A-Za-z\u0900-\u097F]+)/i);
+        if (m) districtName = m[1];
+      }
+    }
+
+    const measurements = this._extractMeasurements(lines);
+
+    // ── Vertices — try table parser first, then plain-text fallback ────────
+    let vertices = this._extractVertexTable(html);
+
+    if (!vertices.length) {
+      vertices = this._extractVertices(html, rawText, lines);
+    }
 
     logger.info('[parser] parseMahabhunakshaLayerReport', {
-      plotNo:      result.plotNo,
-      surveyCode:  result.surveyCode,
-      vertexCount: result.vertices.length,
+      plotNo, surveyCode, vertexCount: vertices.length,
     });
 
-    return result;
+    return {
+      plotNo, surveyCode, surveyNumber,
+      villageName, talukaName, districtName,
+      owners: [], area: '', encumbrances: '',
+      measurements, rawText, vertices,
+    };
+  }
+
+  // ── Dedicated coordinate-table extractor ──────────────────────────────────
+  // Looks for a <table> whose <th> headers contain coordinate keywords,
+  // then reads each <tr> for (index, northing/Y, easting/X) values.
+  // Falls back to a regex scan for large coordinate pairs.
+
+  _extractVertexTable(html) {
+    if (!html) return [];
+
+    const vertices = [];
+
+    // Helper: is this a plausible Maharashtra cadastral coordinate?
+    // WGS84 geographic:  lon 73–80, lat 15–22
+    // MTM/local grid:    both values > 10 000
+    // Reject scale-bar values (< 1 000) and identical pairs.
+    const isValidCoord = (x, y) => {
+      if (isNaN(x) || isNaN(y) || x === y) return false;
+      const geo = (x >= 73 && x <= 80 && y >= 15 && y <= 22);
+      const mtm = (x > 10000 && y > 10000);
+      return geo || mtm;
+    };
+
+    // ── Strategy 1: scan every <table> for a coordinate header ─────────────
+    const tableRe = /<table[^>]*>([\s\S]*?)<\/table>/gi;
+    let tableMatch;
+
+    while ((tableMatch = tableRe.exec(html)) !== null) {
+      const tableHtml = tableMatch[1];
+
+      const thTexts = (tableHtml.match(/<th[^>]*>([\s\S]*?)<\/th>/gi) || [])
+        .map(th => th.replace(/<[^>]+>/g, '').trim().toLowerCase());
+
+      const headerLine = thTexts.join(' ');
+      const isCoordTable =
+        /northing|easting|vertex|coord|x[\s\-_]*coord|y[\s\-_]*coord|अक्षांश|रेखांश/i
+          .test(headerLine);
+
+      if (!isCoordTable) continue;
+
+      // Determine which column is X (easting) and which is Y (northing)
+      let xCol = -1, yCol = -1;
+      thTexts.forEach((h, i) => {
+        if (/easting|x[\s\-_]*coord|\bx\b/.test(h)) xCol = i;
+        if (/northing|y[\s\-_]*coord|\by\b/.test(h)) yCol = i;
+      });
+      // Default: col 0 = index, col 1 = northing/Y, col 2 = easting/X
+      if (xCol === -1) xCol = 2;
+      if (yCol === -1) yCol = 1;
+
+      const rowRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+      let rowMatch;
+      const found = [];
+
+      while ((rowMatch = rowRe.exec(tableHtml)) !== null) {
+        const cells = (rowMatch[1].match(/<td[^>]*>([\s\S]*?)<\/td>/gi) || [])
+          .map(td => td.replace(/<[^>]+>/g, '').trim());
+        if (cells.length <= Math.max(xCol, yCol)) continue;
+
+        const x = parseFloat(cells[xCol]);
+        const y = parseFloat(cells[yCol]);
+        if (isValidCoord(x, y)) {
+          found.push({ id: `V${found.length + 1}`, rawX: String(x), rawY: String(y) });
+        }
+      }
+
+      if (found.length >= 3) {
+        logger.info('[parser] Vertices via coordinate table', { count: found.length });
+        return found;
+      }
+    }
+
+    // ── Strategy 2: regex scan for large coordinate pairs anywhere in HTML ──
+    // Maharashtra MTM coords: 5–7 integer digits, 1–4 decimal places
+    const coordPairRe = /(\d{4,7}\.\d{1,4})[^\d.]{1,30}?(\d{4,7}\.\d{1,4})/g;
+    let m;
+    const seen = new Set();
+
+    while ((m = coordPairRe.exec(html)) !== null) {
+      const x = parseFloat(m[1]);
+      const y = parseFloat(m[2]);
+      const key = `${x},${y}`;
+      if (!seen.has(key) && isValidCoord(x, y)) {
+        seen.add(key);
+        vertices.push({ id: `V${vertices.length + 1}`, rawX: String(x), rawY: String(y) });
+      }
+    }
+
+    if (vertices.length >= 3) {
+      logger.info('[parser] Vertices via coord-pair regex scan', { count: vertices.length });
+    }
+
+    return vertices;
   }
 
   parseMahabhunakshaWfsFeature(featureJson) {
@@ -474,7 +602,7 @@ class ParserService {
         result.vertices = ring.slice(0, -1).map((coord, idx) => ({
           id:   `V${idx + 1}`,
           rawX: String(coord[0]),
-          rawY: String(coord[1])
+          rawY: String(coord[1]),
         }));
       }
       result.rawText = JSON.stringify(props);
@@ -484,9 +612,9 @@ class ParserService {
     return result;
   }
 
-  // ─────────────────────────────────────────────
-  // MAHABHUNAKSHA PRIVATE HELPERS
-  // ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// MAHABHUNAKSHA PRIVATE HELPERS
+// ─────────────────────────────────────────────
 
   _extractPlotNo(lines) {
     for (const line of lines) {
@@ -513,7 +641,7 @@ class ParserService {
   _isKnownNonCode(str) {
     const knownLabels = new Set([
       'DISTRICT', 'VILLAGE', 'TALUKA', 'MAHARASHTRA',
-      'PLOTNO', 'SURVEY', 'FEATURE', 'POLYGON'
+      'PLOTNO', 'SURVEY', 'FEATURE', 'POLYGON', 'LOCATION',
     ]);
     return knownLabels.has(str.toUpperCase());
   }
@@ -531,15 +659,19 @@ class ParserService {
     };
 
     // Strategy 0: plain text — large coords or high-precision decimals
-    const plainVertexRegex = /\b(V?\d+)\s*[:\-]?\s*(\d{3,}\.\d+|\d+\.\d{4,})\s*[,\s]+(\d{3,}\.\d+|\d+\.\d{4,})/gi;
-    let pv;
-    while ((pv = plainVertexRegex.exec(text)) !== null) {
-      addVertex(pv[1], pv[2], pv[3]);
-    }
-    if (vertices.length > 0) {
-      logger.info('[parser] Vertices via Strategy 0 (plain-text)', { count: vertices.length });
-      return vertices;
-    }
+const plainVertexRegex =
+  /\b(V?\d+)\s*[:\-]?\s*(\d{3,}\.\d+|\d+\.\d{4,})\s*[,\s]+(\d{3,}\.\d+|\d+\.\d{4,})/gi;
+let pv;
+while ((pv = plainVertexRegex.exec(text)) !== null) {
+  const x = parseFloat(pv[2]);
+  const y = parseFloat(pv[3]);
+  // Reject scale-bar / measurement values — must be real Maharashtra coords
+  const isGeo = (x >= 73 && x <= 80 && y >= 15 && y <= 22);
+  const isMTM = (x > 10000 && y > 10000);
+  if (isGeo || isMTM) {
+    addVertex(pv[1], pv[2], pv[3]);
+  }
+}
 
     // Strategy A: HTML table rows
     const tableRowRegex = /<tr[^>]*>[\s\S]*?<\/tr>/gi;
@@ -574,7 +706,8 @@ class ParserService {
     }
 
     // Strategy C: onclick attributes
-    const onclickRegex = /showInfo\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*['"]?(V\d+)['"]?\s*\)/gi;
+    const onclickRegex =
+      /showInfo\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*['"]?(V\d+)['"]?\s*\)/gi;
     let oc;
     while ((oc = onclickRegex.exec(rawHtml)) !== null) {
       addVertex(oc[3], oc[1], oc[2]);
@@ -624,9 +757,10 @@ class ParserService {
   _emptyMahabhunakshaResult(source) {
     return {
       plotNo: '', surveyCode: '', vertices: [],
-      measurements: {}, rawText: '', source
+      measurements: {}, rawText: '', source,
     };
   }
+
 }
 
 module.exports = new ParserService();

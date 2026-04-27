@@ -1,63 +1,42 @@
-/**
- * @file land.service.js
- * @description This service handles complex external integrations, background tasks, or specific business operations separate from the controller.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
-const { getContract, getSigner } = require('./contract.service');
+// src/services/blockchain/land.service.js
+const { getContractByName, getSigner } = require('./contract.service');
+const { ethers } = require('ethers');
 const logger = require('../../utils/logger');
-const path = require('path');
 
-const ABI_PATH = path.join(__dirname, '../../../contracts/abis/LandRegistry.json');
-const CONTRACT_ADDRESS = process.env.LAND_REGISTRY_ADDRESS || '';
+/**
+ * Convert MongoDB _id to bytes32 for contract calls.
+ * MUST match what the Solidity contract expects: keccak256(utf8(mongoId))
+ * Use this everywhere you need to pass landId to contracts.
+ */
+exports.toLandIdBytes32 = (mongoId) => {
+  return ethers.keccak256(ethers.toUtf8Bytes(mongoId.toString()));
+};
 
 /**
  * Register a land asset on-chain.
- *
- * @param {Object} params
- * @param {string} params.tokenId - Unique token ID
- * @param {string} params.metadataHash - IPFS CID of land metadata
- * @param {string} params.owner - Owner wallet address
- * @param {string[]} params.coOwners - Co-owner wallet addresses
- * @param {number[]} params.shares - Co-owner shares (percentages)
- * @param {string} params.encumbrancesHash - Hash of encumbrances data
- * @param {string} params.geoCID - IPFS CID of GeoJSON polygon
- * @param {string} params.scrapeCID - IPFS CID of Mahabhulekh snapshot
- * @returns {{ txHash, receipt }}
+ * LandRegistry.registerLand(bytes32 landId, string ipfsCID, address landOwner)
+ * Caller must be an approved registrar (added by admin via addRegistrar).
  */
-exports.registerLand = async (params) => {
-  if (!CONTRACT_ADDRESS) {
-    logger.warn('LandRegistry contract address not configured — skipping on-chain registration');
-    return { txHash: 'not-deployed', receipt: null };
-  }
-
-  const signer = getSigner(process.env.DEPLOYER_PRIVATE_KEY);
-  const contract = getContract(ABI_PATH, CONTRACT_ADDRESS, signer);
-
-  if (!contract) {
-    return { txHash: 'abi-empty', receipt: null };
-  }
-
+exports.registerLand = async ({ landMongoId, ipfsCID, ownerPrivateKey, sellerWallet }) => {
   try {
-    const tx = await contract.registerLand(
-      params.tokenId,
-      params.metadataHash,
-      params.owner,
-      params.coOwners || [],
-      params.shares || [],
-      params.encumbrancesHash || '',
-      params.geoCID || '',
-      params.scrapeCID || ''
-    );
+    const signer   = await getSigner(ownerPrivateKey);
+    const contract = getContractByName('LandRegistry', signer);
 
+    if (!contract) {
+      logger.warn('LandRegistry not available — skipping on-chain registration');
+      return { txHash: 'not-deployed', receipt: null };
+    }
+
+    // ✅ keccak256 — matches what Solidity docs say: "keccak256 hash of the MongoDB land _id"
+    const landIdBytes32 = exports.toLandIdBytes32(landMongoId);
+
+    const tx      = await contract.registerLand(landIdBytes32, ipfsCID, sellerWallet);
     const receipt = await tx.wait();
-    logger.info('Land registered on-chain', { txHash: tx.hash, tokenId: params.tokenId });
 
-    return { txHash: tx.hash, receipt };
+    logger.info('Land registered on-chain', { txHash: tx.hash, landMongoId, sellerWallet, landIdBytes32 });
+    return { txHash: tx.hash, receipt, landIdBytes32 };
   } catch (err) {
-    logger.error('On-chain registerLand failed', { error: err.message });
+    logger.error('registerLand failed', { error: err.message });
     throw err;
   }
 };
@@ -65,14 +44,72 @@ exports.registerLand = async (params) => {
 /**
  * Get land data from chain.
  */
-exports.getLand = async (tokenId) => {
-  const contract = getContract(ABI_PATH, CONTRACT_ADDRESS);
-  if (!contract) return null;
-
+exports.getLand = async (mongoId) => {
   try {
-    return await contract.getLand(tokenId);
+    const contract = getContractByName('LandRegistry');
+    if (!contract) return null;
+
+    const landIdBytes32 = exports.toLandIdBytes32(mongoId);
+    return await contract.getLand(landIdBytes32);
   } catch (err) {
-    logger.error('getLand failed', { tokenId, error: err.message });
+    logger.error('getLand failed', { error: err.message });
     return null;
+  }
+};
+
+/**
+ * Add registrar — admin calls this after officer verifies land owner off-chain.
+ */
+exports.addRegistrar = async (walletAddress) => {
+  try {
+    const signer   = await getSigner(process.env.DEPLOYER_PRIVATE_KEY);
+    const contract = getContractByName('LandRegistry', signer);
+    if (!contract) return { txHash: 'not-deployed' };
+
+    const tx      = await contract.addRegistrar(walletAddress);
+    const receipt = await tx.wait();
+    logger.info('Registrar added', { walletAddress, txHash: tx.hash });
+    return { txHash: tx.hash, receipt };
+  } catch (err) {
+    logger.error('addRegistrar failed', { error: err.message });
+    throw err;
+  }
+};
+
+/**
+ * Freeze land — called by officer service, not directly by controller.
+ */
+exports.freezeLand = async (landIdBytes32, reason) => {
+  try {
+    const signer   = await getSigner(process.env.DEPLOYER_PRIVATE_KEY);
+    const contract = getContractByName('OfficerMultiSig', signer);
+    if (!contract) return { txHash: 'not-deployed' };
+
+    const tx      = await contract.freezeLand(landIdBytes32, reason ?? ''); // ✅ correct method
+    const receipt = await tx.wait();
+    logger.info('Land frozen', { txHash: tx.hash, landIdBytes32, reason });
+    return { txHash: tx.hash, receipt };
+  } catch (err) {
+    logger.error('freezeLand failed', { error: err.message });
+    throw err;
+  }
+};
+
+/**
+ * Unfreeze land — officer resolves dispute.
+ */
+exports.unfreezeLand = async (landIdBytes32) => {
+  try {
+    const signer   = await getSigner(process.env.DEPLOYER_PRIVATE_KEY);
+    const contract = getContractByName('OfficerMultiSig', signer);
+    if (!contract) return { txHash: 'not-deployed' };
+
+    const tx      = await contract.clearFreeze(landIdBytes32);
+    const receipt = await tx.wait();
+    logger.info('Land unfrozen', { txHash: tx.hash });
+    return { txHash: tx.hash, receipt };
+  } catch (err) {
+    logger.error('unfreezeLand failed', { error: err.message });
+    throw err;
   }
 };

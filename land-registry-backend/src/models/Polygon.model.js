@@ -1,11 +1,3 @@
-/**
- * @file Polygon.model.js
- * @description This model defines the MongoDB schema and database structure for the application.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
@@ -109,7 +101,7 @@ polygonSchema.virtual('vertexCount').get(function() {
 });
 
 // ─── Pre-save middleware (optional validation) ─────────────────────────────
-polygonSchema.pre('save', function() {
+polygonSchema.pre('save', function(next) {
   // Auto-set source if Mahabhunaksha vertices exist
   if (this.mahabhunakshaVertices && this.mahabhunakshaVertices.length > 0) {
     this.source = 'mahabhunaksha';
@@ -119,6 +111,8 @@ polygonSchema.pre('save', function() {
   if (this.mahabhunakshaVertices && this.mahabhunakshaVertices.length > 0 && !this.sourceCRS) {
     this.sourceCRS = this.mahabhunakshaVertices[0].sourceCRS || 'WGS84';
   }
+
+  next();
 });
 
 module.exports = mongoose.model('Polygon', polygonSchema);

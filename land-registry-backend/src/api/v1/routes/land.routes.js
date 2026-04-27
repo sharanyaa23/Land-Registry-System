@@ -1,11 +1,3 @@
-/**
- * @file land.routes.js
- * @description This file configures the primary API routing and versioning for the backend.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 const express = require('express');
 const router = express.Router();
 const controller = require('../../../controllers/land.controller');
@@ -15,11 +7,13 @@ const { validate } = require('../../../middleware/validate.middleware');
 const { registerLand, updateLand, uploadDocuments, updateStatus, idParam } = require('../../../validators/land.validator');
 
 router.post('/register', authenticate, requireRole('seller'), validate(registerLand), controller.register);
+router.post('/:id/register', authenticate, requireRole('seller'), controller.registerExisting);
 router.get('/', authenticate, controller.list);
 router.get('/search', authenticate, controller.search);
 router.get('/:id', authenticate, validate(idParam, 'params'), controller.getById);
 router.put('/:id', authenticate, requireRole('seller'), validate(idParam, 'params'), validate(updateLand), controller.update);
 router.post('/:id/upload-documents', authenticate, requireRole('seller'), validate(idParam, 'params'), validate(uploadDocuments), controller.uploadDocuments);
 router.put('/:id/status', authenticate, requireRole('officer', 'admin'), validate(idParam, 'params'), validate(updateStatus), controller.updateStatus);
+router.put('/:id/list', authenticate, controller.listForSale);
 
 module.exports = router;

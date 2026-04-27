@@ -1,26 +1,3 @@
-/**
- * @file Land.model.js
- * @description Defines the MongoDB schema for a Land asset — the core entity of the system.
- *
- *              SCHEMA FIELDS:
- *              - owner:     Reference to the User who registered this land (ObjectId → User)
- *              - coOwners:  Array of CoOwner references (for multi-sig consent)
- *              - location:  Embedded object with district, taluka, village, surveyNumber, gatNumber
- *              - area:      Object with value (Number) and unit (sqm/hectare/acre/guntha)
- *              - status:    State machine controlling the land lifecycle (see STATUS FLOW below)
- *              - documents: IPFS CIDs for 7/12 extract, Mahabhulekh snapshot, polygon GeoJSON
- *              - txHash:    The blockchain transaction hash from on-chain registration
- *
- *              STATUS FLOW (State Machine):
- *              draft → documents_uploaded → verification_pending → verification_passed → registered → listed
- *                                                                ↘ officer_review (if OCR fails) ↗
- *                                                                ↘ verification_failed (if rejected)
- *              listed → transfer_pending → transferred (ownership changed)
- *
- * NOTE: This file is essential for the backend architecture.
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
@@ -51,7 +28,6 @@ const landSchema = new Schema({
   encumbrances: { type: String, default: '' },
   boundaryDescription: { type: String, default: '' },
 
-  // Workflow state machine
   status: {
     type: String,
     enum: [
@@ -61,40 +37,42 @@ const landSchema = new Schema({
       'verification_passed',
       'verification_failed',
       'officer_review',
-      'registered',
       'listed',
       'transfer_pending',
-      'transferred'
+      'transferred',
+      'frozen'
     ],
     default: 'draft'
   },
 
-  // IPFS document CIDs
   documents: {
-    sevenTwelveCID: String,           // 7/12 extract image/PDF
-    mahabhulekhSnapshotCID: String,   // scraped HTML snapshot
-    mahabhunakshaSnapshotCID: String, // map snapshot
+    sevenTwelveCID: String,
+    mahabhulekhSnapshotCID: String,
+    mahabhunakshaSnapshotCID: String,
     nocDocuments: [{
       coOwnerId: { type: Schema.Types.ObjectId },
       cid: String
     }],
-    polygonGeoJsonCID: { type: String, default: null }, // IPFS CID for boundary
-    kmlCID: { type: String, default: null }             // IPFS CID for KML format
+    polygonGeoJsonCID: String
   },
 
-  // Verification reference
+  listingPrice: {
+    amount: { type: Number, default: null },
+    currency: { type: String, default: 'POL' }
+  },
+
   verificationResult: { type: Schema.Types.ObjectId, ref: 'VerificationResult' },
   legacyFlag: { type: Boolean, default: false },
 
-  // On-chain data
-  onChainTokenId: String,
-  txHash: String,
-  registrationTxHash: { type: String, default: null }
+  blockchain: {
+    landIdBytes32:       String,
+    registrationTxHash:  String,
+    proposalId:          String
+  }
 }, {
   timestamps: true
 });
 
-// Indexes
 landSchema.index({ owner: 1, status: 1 });
 landSchema.index({ 'location.district': 1, 'location.taluka': 1, 'location.village': 1 });
 landSchema.index({ 'location.surveyNumber': 1 });

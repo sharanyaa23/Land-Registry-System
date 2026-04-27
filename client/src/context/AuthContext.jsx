@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { BrowserProvider } from 'ethers';
 import { authAPI } from '../services/api';
 
@@ -54,36 +54,10 @@ export const AuthProvider = ({ children }) => {
     init();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const accountChangeTimeoutRef = useRef(null);
-
   // Listen for wallet changes
   useEffect(() => {
     if (!window.ethereum) return;
-    const handleAccounts = async (accounts) => { 
-      // Debounce the account change handler
-      if (accountChangeTimeoutRef.current) {
-        clearTimeout(accountChangeTimeoutRef.current);
-      }
-      
-      accountChangeTimeoutRef.current = setTimeout(async () => {
-        if (accounts.length === 0) {
-          logout(); 
-        } else {
-          // Automatically re-authenticate with the new wallet
-          console.log("Account switched, reconnecting...");
-          try {
-            const result = await connectWallet();
-            if (!result) {
-              console.log("Auto-reconnect failed (returned null), logging out...");
-              logout();
-            }
-          } catch (err) {
-            console.error("Auto-reconnect failed:", err);
-            logout();
-          }
-        }
-      }, 500); // 500ms debounce
-    };
+    const handleAccounts = (accounts) => { if (accounts.length === 0) logout(); else setWallet(accounts[0]); };
     const handleChain = (hex) => setChainId(parseInt(hex, 16));
     window.ethereum.on('accountsChanged', handleAccounts);
     window.ethereum.on('chainChanged', handleChain);
@@ -152,9 +126,11 @@ export const AuthProvider = ({ children }) => {
       setChainId(chainId);
       console.log('Network detected:', chainId);
 
-      // Warning if not on supported networks (Amoy or Hardhat Local)
-      if (chainId !== 80002 && chainId !== 31337 && chainId !== 1337 && chainId !== 80001 && chainId !== 137) {
-        console.warn('Network may not be supported:', chainId);
+      // Check if on correct network (Amoy)
+      if (chainId !== 80002) {
+        console.error('Wrong network detected:', chainId);
+        alert(`Please switch to Polygon Amoy Testnet (Chain ID: 80002). Current network: Chain ${chainId}`);
+        return null;
       }
 
       console.log('Requesting nonce from backend...');

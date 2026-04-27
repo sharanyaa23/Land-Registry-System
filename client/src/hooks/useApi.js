@@ -44,10 +44,7 @@ const useApi = (apiCallFn, deps = [], options = { immediate: true }) => {
   useEffect(() => {
     mountedRef.current = true;
     if (options.immediate) {
-      execute().catch(() => {
-        // Suppress unhandled promise rejections for auto-fetches
-        // The error state is already managed in the execute function
-      });
+      execute();
     }
     return () => {
       mountedRef.current = false;

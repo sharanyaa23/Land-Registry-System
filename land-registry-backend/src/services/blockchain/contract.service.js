@@ -1,26 +1,17 @@
-/**
- * @file contract.service.js
- * @description This service handles complex external integrations, background tasks, or specific business operations separate from the controller.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
+// src/services/blockchain/contract.service.js
+// Creates ethers.js contract instances using local artifacts + addresses
 
+require('dns').setDefaultResultOrder('ipv4first');
 const { ethers } = require('ethers');
-const logger = require('../../utils/logger');
+const logger     = require('../../utils/logger');
+const { getAddresses, getArtifact, IS_LOCAL } = require('../../config/blockchain');
 
-/**
- * Blockchain contract service — creates ethers.js contract instances.
- * Requires contract ABI files and deployed addresses in env vars.
- */
-
-const RPC_URL = process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com';
+const RPC_URL = IS_LOCAL
+  ? 'http://127.0.0.1:8545'
+  : (process.env.POLYGON_RPC_URL || 'https://rpc-amoy.polygon.technology');
 
 let provider;
 
-/**
- * Get or create the JSON-RPC provider.
- */
 exports.getProvider = () => {
   if (!provider) {
     provider = new ethers.JsonRpcProvider(RPC_URL);
@@ -29,22 +20,44 @@ exports.getProvider = () => {
 };
 
 /**
- * Create a contract instance from ABI and address.
+ * Get a contract instance by name.
+ * Automatically resolves ABI from compiled artifacts and address from local.json / env.
  *
- * @param {string} abiPath - Path to ABI JSON file
- * @param {string} address - Deployed contract address
- * @param {ethers.Signer} [signer] - Optional signer for write operations
- * @returns {ethers.Contract}
+ * @param {'LandRegistry'|'MultiSigTransfer'|'OfficerMultiSig'} contractName
+ * @param {ethers.Signer} [signer]
  */
-exports.getContract = (abiPath, address, signer = null) => {
+exports.getContractByName = (contractName, signer = null) => {
   try {
-    const abi = require(abiPath);
+    const addresses = getAddresses();
+    const address   = addresses[contractName];
 
-    if (!abi || (Array.isArray(abi) && abi.length === 0)) {
-      logger.warn('Contract ABI is empty — blockchain calls will fail', { abiPath });
+    if (!address) {
+      logger.warn(`No address found for ${contractName}`);
       return null;
     }
 
+    const artifact = getArtifact(contractName);
+    const abi      = artifact.abi;
+
+    if (!abi || abi.length === 0) {
+      logger.warn(`ABI is empty for ${contractName}`);
+      return null;
+    }
+
+    const prov = exports.getProvider();
+    return new ethers.Contract(address, abi, signer || prov);
+  } catch (err) {
+    logger.error(`Failed to load contract ${contractName}`, { error: err.message });
+    return null;
+  }
+};
+
+/**
+ * Legacy: get contract by ABI path and address (for backward compat)
+ */
+exports.getContract = (abiPath, address, signer = null) => {
+  try {
+    const abi  = require(abiPath);
     const prov = exports.getProvider();
     return new ethers.Contract(address, abi, signer || prov);
   } catch (err) {
@@ -54,9 +67,13 @@ exports.getContract = (abiPath, address, signer = null) => {
 };
 
 /**
- * Create a wallet signer from a private key.
+ * Get a deployer signer from private key, or first local account.
  */
-exports.getSigner = (privateKey) => {
+exports.getSigner = async (privateKey) => {
   const prov = exports.getProvider();
+  if (IS_LOCAL && !privateKey) {
+    // Use first test account from local hardhat node
+    return await prov.getSigner(0);
+  }
   return new ethers.Wallet(privateKey, prov);
 };

@@ -1,24 +1,3 @@
-/**
- * @file auth.middleware.js
- * @description Intercepts every authenticated API request to verify the user's identity.
- *
- *              AUTHENTICATION FLOW (Wallet-Based, No Passwords):
- *              1. User connects their MetaMask wallet on the frontend
- *              2. Backend generates a unique nonce (random number) for the wallet address
- *              3. User signs the nonce with their private key in MetaMask (proves ownership)
- *              4. Backend verifies the signature using ethers.js and issues a JWT token
- *              5. This middleware extracts the JWT from the Authorization header on every request,
- *                 decodes it, finds the user in MongoDB, and attaches req.user and req.userId
- *              6. If the token is invalid or expired, the request is rejected with 401 Unauthorized
- *
- *              WHY WALLET AUTH? Unlike traditional email/password, wallet-based auth guarantees
- *              that the person making the request actually controls the blockchain wallet.
- *              This is critical for a land registry where ownership = wallet address.
- *
- * NOTE: This file is essential for the backend architecture.
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 const jwt = require('jsonwebtoken');
 const User = require('../models/User.model');
 const logger = require('../utils/logger');

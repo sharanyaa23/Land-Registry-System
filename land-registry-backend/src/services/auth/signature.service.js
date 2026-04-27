@@ -1,11 +1,3 @@
-/**
- * @file signature.service.js
- * @description This service handles complex external integrations, background tasks, or specific business operations separate from the controller.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 const { verifySiweSignature } = require('../../utils/walletUtils');
 const { generateToken } = require('../../middleware/auth.middleware');
 const User = require('../../models/User.model');

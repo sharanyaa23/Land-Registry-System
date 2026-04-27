@@ -1,11 +1,3 @@
-/**
- * @file fuzzyMatch.js
- * @description This utility file contains reusable helper functions used across the application.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 // src/utils/fuzzyMatch.js
 const { distance } = require('fastest-levenshtein');
 

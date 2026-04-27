@@ -1,11 +1,4 @@
-/**
- * @file server.js
- * @description Entry point of the application. Starts the Express server and connects to the database.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
+require('dns').setDefaultResultOrder('ipv4first');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');

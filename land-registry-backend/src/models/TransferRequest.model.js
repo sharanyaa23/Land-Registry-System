@@ -1,33 +1,24 @@
-/**
- * @file TransferRequest.model.js
- * @description This model defines the MongoDB schema and database structure for the application.
- * 
- * NOTE: This file is essential for the backend architecture. 
- * It follows the Model-View-Controller (MVC) pattern.
- */
-
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const transferRequestSchema = new Schema({
-  land: { type: Schema.Types.ObjectId, ref: 'Land', required: true },
+  land:   { type: Schema.Types.ObjectId, ref: 'Land', required: true },
   seller: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  buyer: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  buyer:  { type: Schema.Types.ObjectId, ref: 'User', required: true },
 
   price: {
-    amount: { type: Number, required: true },
+    amount:   { type: Number, required: true },
     currency: { type: String, default: 'POL' }
   },
 
-  // Transfer lifecycle state machine
   status: {
     type: String,
     enum: [
       'offer_sent',
       'offer_accepted',
       'coowner_consent_pending',
-      'officer_review',
       'escrow_locked',
+      'officer_review',
       'approved',
       'completed',
       'rejected',
@@ -36,7 +27,6 @@ const transferRequestSchema = new Schema({
     default: 'offer_sent'
   },
 
-  // Per-co-owner consent tracking
   coOwnerConsents: [{
     coOwner: { type: Schema.Types.ObjectId, ref: 'CoOwner' },
     status: {
@@ -47,14 +37,14 @@ const transferRequestSchema = new Schema({
     signedAt: Date
   }],
 
-  // Officer case reference (if flagged)
   officerCase: { type: Schema.Types.ObjectId, ref: 'OfficerCase' },
 
-  // Escrow details
   escrow: {
     contractAddress: String,
-    txHash: String,
-    lockedAmount: Number,
+    txHash:          String,   // lock-funds tx hash
+    submitTxHash:    String,   // submit-to-officers tx hash
+    lockedAmount:    Number,
+    proposalId:      String,   // on-chain MultiSigTransfer proposalId
     status: {
       type: String,
       enum: ['none', 'intent_deposit', 'locked', 'released', 'refunded'],
@@ -62,8 +52,10 @@ const transferRequestSchema = new Schema({
     }
   },
 
-  // On-chain completion
-  transferTxHash: String
+  hasOfflineCoOwner: { type: Boolean, default: false },
+  fundsLockedAt:     { type: Date },
+  resolvedAt:        { type: Date },
+  transferTxHash:    String
 }, {
   timestamps: true
 });
